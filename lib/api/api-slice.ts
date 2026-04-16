@@ -6,7 +6,7 @@ export const apiSlice = createApi({
     baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
   }),
   endpoints: (builder) => ({
-    getHealth: builder.query({
+    getHealth: builder.query<{ status: string; timestamp: string }, void>({
       query: () => "/health",
     }),
   }),
