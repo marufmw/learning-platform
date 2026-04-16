@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Frontend - Next.js Application
 
-## Getting Started
+## Overview
 
-First, run the development server:
+Next.js frontend with Clerk authentication and RTK Query API layer.
+
+See [../README.md](../README.md) for complete project documentation.
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Copy `.env.local.example` to `.env.local`:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+cp .env.local.example .env.local
+```
 
-## Learn More
+Required variables:
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` - Clerk publishable key
+- `CLERK_SECRET_KEY` - Clerk secret key
+- `NEXT_PUBLIC_API_URL` - Backend API URL
 
-To learn more about Next.js, take a look at the following resources:
+## Running
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Development:
+```bash
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Production:
+```bash
+npm run build
+npm start
+```
 
-## Deploy on Vercel
+## Architecture
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Stripe Integration
+**Important**: All Stripe operations are backend-driven. The frontend has NO Stripe SDK.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Backend handles: Checkout session creation, payment processing, subscriptions
+- Frontend calls: Backend API to initiate checkout (e.g., `POST /api/checkout`)
+- Backend redirects: User to Stripe Checkout URL
+
+This approach ensures security and keeps sensitive Stripe keys away from the frontend.
+
+## Pages
+
+- `/` - Home page
+- `/sign-in` - Sign in with Clerk
+- `/sign-up` - Sign up with Clerk
+- `/dashboard` - Protected dashboard (requires authentication)
+
+## API Integration
+
+API calls are made through RTK Query (`lib/api/api-slice.ts`).
+
+Never use `fetch()` directly—always use RTK Query hooks.
+
+## Component Structure
+
+- `app/(auth)/` - Public authentication pages
+- `app/(authenticated)/` - Protected pages (require Clerk auth)
+- `lib/api/` - RTK Query configuration
+- `lib/store.ts` - Redux store setup
+- `lib/providers.tsx` - Redux provider
+
+## Security Notes
+
+- Clerk middleware protects all non-public routes
+- No sensitive keys (Stripe, API secrets) in frontend
+- All payment operations happen on backend only
+- Environment variables validated at build time

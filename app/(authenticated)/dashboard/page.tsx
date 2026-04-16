@@ -23,12 +23,12 @@ export default function DashboardPage() {
 
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="border rounded p-4">
-          <h2 className="font-semibold">Billing</h2>
-          <p className="text-sm text-gray-600 mt-2">Manage your subscription</p>
+          <h2 className="font-semibold">Subscription</h2>
+          <p className="text-sm text-gray-600 mt-2">View subscription via API</p>
         </div>
         <div className="border rounded p-4">
           <h2 className="font-semibold">Profile</h2>
-          <p className="text-sm text-gray-600 mt-2">View and edit your profile</p>
+          <p className="text-sm text-gray-600 mt-2">Managed by Clerk</p>
         </div>
       </div>
     </div>
