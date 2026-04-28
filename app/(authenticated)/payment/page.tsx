@@ -38,8 +38,13 @@ export default function PaymentPage() {
         setError("No checkout URL received");
         setSelectedPlan(null);
       }
-    } catch (err: unknown) {
-      setError(err.message || "Failed to start plan");
+    } catch (err) {
+      let errorMsg = "Failed to start plan";
+      if (err && typeof err === "object") {
+        const error = err as { response?: { data?: { message?: string } }; message?: string };
+        errorMsg = error?.response?.data?.message || error?.message || errorMsg;
+      }
+      setError(errorMsg);
       setSelectedPlan(null);
     }
   };

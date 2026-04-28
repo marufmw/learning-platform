@@ -55,9 +55,7 @@ export default function SettingsPage() {
 
   // Auto-select first child when children are created
   useEffect(() => {
-    console.log("Child auto-select effect running:", { children, selectedChildId });
     if (children && children.length > 0 && !selectedChildId) {
-      console.log("Auto-selecting first child:", children[0].id);
       setSelectedChild(children[0].id);
     }
   }, [children, selectedChildId, setSelectedChild]);
