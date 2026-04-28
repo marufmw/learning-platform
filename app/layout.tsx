@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Foundation App",
-  description: "Foundation platform application",
+  title: "Busy Brains App",
+  description: "Busy Brains platform application",
 };
 
 export default function RootLayout({

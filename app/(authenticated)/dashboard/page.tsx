@@ -64,7 +64,7 @@ export default function DashboardPage() {
         {selectedChild && (
           <div className="mb-8">
             <p className="text-gray-600 dark:text-gray-400 mb-2">
-              Welcome back! Let's continue learning
+              Welcome back! Lets continue learning
             </p>
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
               <span className="text-5xl">{selectedChild.gender === "male" ? "👨" : "👩"}</span>
