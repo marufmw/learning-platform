@@ -166,7 +166,7 @@ export default function DashboardPage() {
                           status?.unlockDate ? (
                             <span>Unlocks {new Date(status.unlockDate).toLocaleDateString()}</span>
                           ) : (
-                            <span>Locked</span>
+                            <span>Locked. Purchase a plan to unlock.</span>
                           )
                         ) : (
                           <span>Complete Module {moduleNo - 1} first</span>

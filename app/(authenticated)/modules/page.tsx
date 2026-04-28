@@ -109,7 +109,7 @@ export default function ModulesPage() {
                       </p>
                     ) : (
                       <p className="text-xs text-gray-500 dark:text-gray-500">
-                        Unlock date not available
+                        Purchase a plan to unlock.
                       </p>
                     )}
                   </div>

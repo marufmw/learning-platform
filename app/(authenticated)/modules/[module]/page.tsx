@@ -96,7 +96,7 @@ export default function ModuleDetailPage() {
               </p>
             ) : (
               <p className="text-sm">
-                Unlock date not available
+                Purchase a plan to unlock.
               </p>
             )}
           </div>
