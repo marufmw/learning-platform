@@ -23,7 +23,7 @@ export default function ModulesPage() {
 
   if (!selectedChild) {
     return (
-      <div className="min-h-[60vh] bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 flex items-center justify-center">
+      <div className="min-h-[60vh] bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 flex items-center justify-center">
         <div className="text-center max-w-md">
           <p className="text-2xl mb-4">👶</p>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
@@ -46,7 +46,7 @@ export default function ModulesPage() {
   const modules = [1, 2, 3, 4, 5, 6];
 
   return (
-    <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 min-h-screen">
+    <div className="bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">

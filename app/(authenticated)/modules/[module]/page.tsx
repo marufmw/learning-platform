@@ -54,7 +54,7 @@ export default function ModuleDetailPage() {
 
   if (!selectedChild) {
     return (
-      <div className="min-h-[60vh] bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 flex items-center justify-center">
+      <div className="min-h-[60vh] bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 flex items-center justify-center">
         <div className="text-center">
           <Link href="/modules" className="text-blue-600 dark:text-blue-400 hover:underline mb-4 inline-block">
             ← Back to Modules
@@ -71,7 +71,7 @@ export default function ModuleDetailPage() {
   }
 
   return (
-    <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 min-h-screen">
+    <div className="bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 min-h-screen">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Link href="/modules" className="text-blue-600 dark:text-blue-400 hover:underline mb-6 inline-block font-medium">
           ← Back to Modules

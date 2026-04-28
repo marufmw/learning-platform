@@ -20,7 +20,7 @@ export function PaymentSuccessContent() {
   }, [countdown, router]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900">
+    <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900">
       <div className="max-w-md w-full p-8 border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-gray-900 shadow-lg text-center">
         <div className="text-6xl mb-4">✅</div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">

@@ -47,18 +47,11 @@ export default function DashboardPage() {
     );
   }
 
-  const getModuleProgress = (moduleNo: number) => {
-    const moduleStatus = accessStatus?.[`module_${moduleNo}`];
-    if (!moduleStatus) return 0;
-    if (moduleStatus.isCompleted) return 100;
-    // Simple progress calculation
-    return moduleStatus.accessible ? 50 : 0;
-  };
-
+ 
   const modules = [1, 2, 3, 4, 5, 6];
 
   return (
-    <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 min-h-screen">
+    <div className="bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         {selectedChild && (
@@ -113,7 +106,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
           <Link
             href="/modules"
-            className="group bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-8 hover:shadow-xl transition transform hover:scale-105"
+            className="group bg-linear-to-br from-blue-500 to-blue-600 text-white rounded-xl p-8 hover:shadow-xl transition transform hover:scale-105"
           >
             <div className="text-4xl mb-3">📚</div>
             <h2 className="text-2xl font-bold mb-2">Continue Learning</h2>
@@ -123,7 +116,7 @@ export default function DashboardPage() {
           </Link>
           <Link
             href="/settings"
-            className="group bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl p-8 hover:shadow-xl transition transform hover:scale-105"
+            className="group bg-linear-to-br from-purple-500 to-purple-600 text-white rounded-xl p-8 hover:shadow-xl transition transform hover:scale-105"
           >
             <div className="text-4xl mb-3">⚙️</div>
             <h2 className="text-2xl font-bold mb-2">Settings</h2>
