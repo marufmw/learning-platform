@@ -30,15 +30,7 @@ export function PaymentSuccessContent() {
           Your payment has been processed successfully.
         </p>
 
-        {sessionId && (
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-6 break-all border border-gray-200 dark:border-gray-700">
-            <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Session ID:</p>
-            <p className="text-sm font-mono text-gray-900 dark:text-gray-100">
-              {sessionId}
-            </p>
-          </div>
-        )}
-
+       
         <div className="space-y-3">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Redirecting to dashboard in <strong>{countdown}</strong> seconds...
