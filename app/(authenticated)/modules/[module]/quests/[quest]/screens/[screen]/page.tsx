@@ -23,7 +23,6 @@ export default function ScreenPage() {
 
   const [jsonData, setJsonData] = useState<Record<string, unknown>>({});
   const [rawJsonText, setRawJsonText] = useState("{}");
-  const [isCompleted, setIsCompleted] = useState(false);
   const [error, setError] = useState("");
 
   const { data: registry } = useGetModuleRegistryQuery(undefined, {
@@ -46,12 +45,14 @@ export default function ScreenPage() {
       // Check if module is unlocked and accessible
       const moduleStatus = accessStatus?.[`module_${moduleNo}`];
       if (!moduleStatus?.unlocked) {
-        const unlockDate = moduleStatus?.unlockDate
-          ? new Date(moduleStatus.unlockDate).toLocaleDateString()
-          : "Unknown";
-        validationError = `Module is locked. Unlocks on ${unlockDate}`;
+        if (moduleStatus?.unlockDate) {
+          const unlockDate = new Date(moduleStatus.unlockDate).toLocaleDateString();
+          validationError = `Module is locked. Unlocks on ${unlockDate}`;
+        } else {
+          validationError = `Module is locked`;
+        }
       } else if (!moduleStatus?.accessible) {
-        validationError = `Module is locked. Complete previous modules first.`;
+        validationError = `Module is inaccessible. Complete previous modules first.`;
       } else {
         const questScreenCount = module?.quests?.[questNo]?.screens;
 
@@ -63,12 +64,22 @@ export default function ScreenPage() {
           // Check if quest is accessible
           const questStatus = accessStatus?.[`module_${moduleNo}`]?.quests?.[`quest_${questNo}`];
           if (!questStatus?.accessible) {
-            validationError = "Quest is locked. Complete previous quests first.";
+            if (questStatus?.unlockDate) {
+              const unlockDate = new Date(questStatus.unlockDate).toLocaleDateString();
+              validationError = `Quest is locked. Unlocks on ${unlockDate}`;
+            } else {
+              validationError = "Quest is inaccessible. Complete previous quests first.";
+            }
           } else {
             // Check if screen is accessible
             const screenStatus = accessStatus?.[`module_${moduleNo}`]?.quests?.[`quest_${questNo}`]?.screens?.[`screen_${screenNo}`];
             if (!screenStatus?.accessible) {
-              validationError = "Screen is locked. Complete previous screens first.";
+              if (screenStatus?.unlockDate) {
+                const unlockDate = new Date(screenStatus.unlockDate).toLocaleDateString();
+                validationError = `Screen is locked. Unlocks on ${unlockDate}`;
+              } else {
+                validationError = "Screen is inaccessible. Complete previous screens first.";
+              }
             }
           }
         }
@@ -97,12 +108,10 @@ export default function ScreenPage() {
       const data = screenData.data ?? {};
       setJsonData(data);
       setRawJsonText(JSON.stringify(data, null, 2));
-      setIsCompleted(screenData.isCompleted ?? false);
     } else if (isLoaded && accessStatus && !isLoading) {
       // No existing progress, initialize with empty data
       setJsonData({});
       setRawJsonText("{}");
-      setIsCompleted(false);
     }
     setDataLoaded(true);
   }, [screenData, isLoading, isLoaded, accessStatus]);
@@ -131,7 +140,7 @@ export default function ScreenPage() {
         moduleNo,
         questNo,
         screenNo,
-        isCompleted,
+        isCompleted: true,
         data: dataToSubmit,
       });
 
@@ -244,19 +253,6 @@ export default function ScreenPage() {
           />
         </div>
 
-        <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={isCompleted}
-              onChange={(e) => setIsCompleted(e.target.checked)}
-              className="w-5 h-5 rounded border-gray-300 dark:border-gray-700 text-blue-600 focus:ring-2 focus:ring-blue-500"
-            />
-            <span className="text-lg font-medium text-gray-900 dark:text-white">
-              ✅ Mark as Completed
-            </span>
-          </label>
-        </div>
 
         <div className="flex gap-3">
           <button

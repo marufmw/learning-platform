@@ -90,9 +90,15 @@ export default function ModuleDetailPage() {
         {!isModuleUnlocked && (
           <div className="p-6 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 rounded-lg mb-6 border border-yellow-200 dark:border-yellow-900">
             <p className="font-medium mb-1">🔒 Module is locked</p>
-            <p className="text-sm">
-              Unlocks on {moduleStatus?.unlockDate ? new Date(moduleStatus.unlockDate).toLocaleDateString() : "N/A"}
-            </p>
+            {moduleStatus?.unlockDate ? (
+              <p className="text-sm">
+                Unlocks on {new Date(moduleStatus.unlockDate).toLocaleDateString()}
+              </p>
+            ) : (
+              <p className="text-sm">
+                Unlock date not available
+              </p>
+            )}
           </div>
         )}
 
@@ -130,9 +136,13 @@ export default function ModuleDetailPage() {
                 </div>
 
                 {!questUnlocked && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                    Complete previous quests to unlock
-                  </p>
+                  <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-900 rounded text-yellow-800 dark:text-yellow-200 text-sm">
+                    {questStatus?.unlockDate ? (
+                      <p>Unlocks on {new Date(questStatus.unlockDate).toLocaleDateString()}</p>
+                    ) : (
+                      <p>Complete previous quests to unlock</p>
+                    )}
+                  </div>
                 )}
 
                 {screenNos.length === 0 ? (
@@ -145,24 +155,36 @@ export default function ModuleDetailPage() {
                       const screenCompleted = screenStatus?.isCompleted ?? false;
 
                       return (
-                        <Link
-                          key={screenNo}
-                          href={
-                            screenUnlocked && selectedChildId
-                              ? `/modules/${moduleNo}/quests/${questNo}/screens/${screenNo}?childId=${selectedChildId}`
-                              : "#"
-                          }
-                          className={`px-4 py-2 rounded-lg font-medium transition ${
-                            screenUnlocked && selectedChildId
-                              ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:shadow-lg hover:scale-105"
-                              : "bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 cursor-not-allowed"
-                          }`}
-                        >
-                          <span className="flex items-center gap-2">
-                            Screen {screenNo}
-                            {screenCompleted && "✓"}
-                          </span>
-                        </Link>
+                        <div key={screenNo} className="relative group">
+                          <Link
+                            href={
+                              screenUnlocked && selectedChildId
+                                ? `/modules/${moduleNo}/quests/${questNo}/screens/${screenNo}`
+                                : "#"
+                            }
+                            className={`px-4 py-2 rounded-lg font-medium transition block ${
+                              screenUnlocked && selectedChildId
+                                ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:shadow-lg hover:scale-105"
+                                : "bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 cursor-not-allowed"
+                            }`}
+                          >
+                            <span className="flex items-center gap-2">
+                              Screen {screenNo}
+                              {screenCompleted && "✓"}
+                            </span>
+                          </Link>
+                          {!screenUnlocked && (
+                            <div className="hidden group-hover:block absolute bottom-full left-0 mb-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded p-2 whitespace-nowrap z-10">
+                              {!questUnlocked ? (
+                                <span>Quest locked</span>
+                              ) : screenStatus?.unlockDate ? (
+                                <span>Unlocks {new Date(screenStatus.unlockDate).toLocaleDateString()}</span>
+                              ) : (
+                                <span>Complete previous screens first</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       );
                     })}
                   </div>

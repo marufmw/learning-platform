@@ -103,19 +103,22 @@ export default function ModulesPage() {
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       🔒 Locked
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-500">
-                      Unlocks:{" "}
-                      {status?.unlockDate
-                        ? new Date(status.unlockDate).toLocaleDateString()
-                        : "N/A"}
-                    </p>
+                    {status?.unlockDate ? (
+                      <p className="text-xs text-gray-500 dark:text-gray-500">
+                        Unlocks on {new Date(status.unlockDate).toLocaleDateString()}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-gray-500 dark:text-gray-500">
+                        Unlock date not available
+                      </p>
+                    )}
                   </div>
                 )}
 
                 {isUnlocked && !isAccessible && (
                   <div className="space-y-2">
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      🔐 Requires Previous Module
+                      🔐 Inaccessible
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-500">
                       Complete Module {moduleNo - 1} to unlock

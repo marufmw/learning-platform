@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
-import { useGetMeQuery, useGetAccessHierarchyQuery, useGetChildrenQuery } from "@/lib/api/hooks";
+import { useGetMeQuery, useGetAccessHierarchyQuery, useGetChildrenQuery, useGetProgressQuery } from "@/lib/api/hooks";
 import { useSelectedChild } from "@/lib/context/ChildContext";
 import { useEffect } from "react";
 
@@ -25,6 +25,11 @@ export default function DashboardPage() {
   }, [user, userLoading, router]);
 
   const { data: accessStatus } = useGetAccessHierarchyQuery(
+    selectedChildId ? { childId: selectedChildId } : undefined,
+    { skip: !selectedChildId }
+  );
+
+  const { data: progressData } = useGetProgressQuery(
     selectedChildId ? { childId: selectedChildId } : undefined,
     { skip: !selectedChildId }
   );
@@ -51,9 +56,6 @@ export default function DashboardPage() {
   };
 
   const modules = [1, 2, 3, 4, 5, 6];
-  const completedModules = modules.filter(
-    (m) => accessStatus?.[`module_${m}`]?.isCompleted
-  ).length;
 
   return (
     <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 min-h-screen">
@@ -75,9 +77,9 @@ export default function DashboardPage() {
         {selectedChild && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Modules Completed</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Screens Completed</p>
               <p className="text-3xl font-bold text-blue-600">
-                {completedModules}/{modules.length}
+                {progressData?.completedScreens ?? 0}/{progressData?.totalScreens ?? 0}
               </p>
             </div>
             <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
@@ -86,12 +88,12 @@ export default function DashboardPage() {
                 <div
                   className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all"
                   style={{
-                    width: `${Math.round((completedModules / modules.length) * 100)}%`,
+                    width: `${progressData?.progressPercentage ?? 0}%`,
                   }}
                 ></div>
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                {Math.round((completedModules / modules.length) * 100)}%
+                {progressData?.progressPercentage ?? 0}%
               </p>
             </div>
             <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
@@ -137,16 +139,18 @@ export default function DashboardPage() {
               {modules.map((moduleNo) => {
                 const status = accessStatus?.[`module_${moduleNo}`];
                 const isCompleted = status?.isCompleted;
-                const isUnlocked = status?.unlocked && status?.accessible;
+                const isUnlocked = status?.unlocked ?? false;
+                const isAccessible = status?.accessible ?? false;
+                const canAccess = isUnlocked && isAccessible;
 
                 return (
                   <Link
                     key={moduleNo}
-                    href={isUnlocked ? `/modules/${moduleNo}` : "#"}
-                    className={`p-4 rounded-lg border-2 transition ${
+                    href={canAccess ? `/modules/${moduleNo}` : "#"}
+                    className={`p-4 rounded-lg border-2 transition group relative ${
                       isCompleted
                         ? "border-green-500 bg-green-50 dark:bg-green-900/20"
-                        : isUnlocked
+                        : canAccess
                         ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 hover:shadow-lg"
                         : "border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 opacity-50 cursor-not-allowed"
                     }`}
@@ -156,9 +160,22 @@ export default function DashboardPage() {
                         {moduleNo}
                       </p>
                       <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        {isCompleted ? "✓ Done" : isUnlocked ? "Unlocked" : "Locked"}
+                        {isCompleted ? "✓ Done" : canAccess ? "Unlocked" : "Locked"}
                       </p>
                     </div>
+                    {!canAccess && (
+                      <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded p-2 whitespace-nowrap z-10">
+                        {!isUnlocked ? (
+                          status?.unlockDate ? (
+                            <span>Unlocks {new Date(status.unlockDate).toLocaleDateString()}</span>
+                          ) : (
+                            <span>Locked</span>
+                          )
+                        ) : (
+                          <span>Complete Module {moduleNo - 1} first</span>
+                        )}
+                      </div>
+                    )}
                   </Link>
                 );
               })}

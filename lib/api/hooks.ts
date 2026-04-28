@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import instance from "./axios-instance";
 import { moduleRegistry } from "@/lib/module-registry";
 
@@ -74,6 +73,7 @@ function useMutation<TData, TVariables>(
 
 // Health
 export function useGetHealthQuery(
+  _?: undefined,
   options?: { skip?: boolean }
 ): UseQueryResult<{ status: string; timestamp: string }> {
   return useQuery(
@@ -85,6 +85,7 @@ export function useGetHealthQuery(
 
 // Users
 export function useGetMeQuery(
+  _?: undefined,
   options?: { skip?: boolean }
 ): UseQueryResult<any> {
   return useQuery(
@@ -96,6 +97,7 @@ export function useGetMeQuery(
 
 // Module Registry
 export function useGetModuleRegistryQuery(
+  _?: undefined,
   options?: { skip?: boolean }
 ): UseQueryResult<any> {
   return useQuery(
@@ -119,6 +121,7 @@ export function useStartPlanMutation(): UseMutationResult<any, { planName: strin
 }
 
 export function useGetPaymentHistoryQuery(
+  _?: undefined,
   options?: { skip?: boolean }
 ): UseQueryResult<any[]> {
   return useQuery(
@@ -130,6 +133,7 @@ export function useGetPaymentHistoryQuery(
 
 // Children
 export function useGetChildrenQuery(
+  _?: undefined,
   options?: { skip?: boolean }
 ): UseQueryResult<any[]> {
   return useQuery(
@@ -190,6 +194,21 @@ export function useGetAccessHierarchyQuery(
 }
 
 // Progress
+export function useGetProgressQuery(
+  params: { childId: string } | undefined,
+  options?: { skip?: boolean }
+): UseQueryResult<{ totalScreens: number; completedScreens: number; progressPercentage: number }> {
+  return useQuery(
+    params ? ["progress", params.childId] : null,
+    () =>
+      instance
+        .get("/modules/progress", { params })
+        .then((res) => res.data),
+    { skip: !params || options?.skip }
+  );
+}
+
+// Progress
 export function useSaveScreenMutation(): UseMutationResult<
   any,
   {
@@ -216,7 +235,7 @@ export function useGetScreenQuery(
 ): UseQueryResult<any> {
   return useQuery(
     params
-      ? ["screen", params.childId, params.moduleNo, params.questNo, params.screenNo]
+      ? ["screen", params.childId, String(params.moduleNo), String(params.questNo), String(params.screenNo)]
       : null,
     () => {
       if (!params) throw new Error("Missing params");

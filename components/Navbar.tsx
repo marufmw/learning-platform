@@ -41,70 +41,69 @@ export function Navbar() {
             </span>
           </Link>
 
-          {/* Center - Child Selector */}
-          {selectedChild && (
-            <div className="relative hidden md:block">
-              <button
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-800 transition text-gray-700 dark:text-gray-300"
-              >
-                <span className="text-lg">
-                  {selectedChild.gender === "male" ? "👨" : "👩"}
-                </span>
-                <span className="font-medium">{selectedChild.name}</span>
-                <svg
-                  className={`w-4 h-4 transition ${
-                    isDropdownOpen ? "rotate-180" : ""
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 14l-7 7m0 0l-7-7m7 7V3"
-                  />
-                </svg>
-              </button>
-
-              {isDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-800">
-                  {children?.map((child) => (
-                    <button
-                      key={child.id}
-                      onClick={() => handleSelectChild(child.id)}
-                      className={`w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-800 transition flex items-center gap-2 ${
-                        child.id === selectedChildId
-                          ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
-                          : "text-gray-700 dark:text-gray-300"
-                      }`}
-                    >
-                      <span className="text-lg">
-                        {child.gender === "male" ? "👨" : "👩"}
-                      </span>
-                      <span className="font-medium">{child.name}</span>
-                      {child.id === selectedChildId && (
-                        <span className="ml-auto">✓</span>
-                      )}
-                    </button>
-                  ))}
-                  <div className="border-t border-gray-200 dark:border-gray-800 px-4 py-3">
-                    <Link
-                      href="/settings"
-                      className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"
-                    >
-                      Manage Children →
-                    </Link>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
 
           {/* Right - Navigation */}
           <div className="flex items-center gap-1 sm:gap-4">
+            {/* Center - Child Selector */}
+            {selectedChild && (
+              <div className="relative hidden md:block">
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-800 transition text-gray-700 dark:text-gray-300"
+                >
+                  <span className="text-lg">
+                    {selectedChild.gender === "male" ? "👨" : "👩"}
+                  </span>
+                  <span className="font-medium">{selectedChild.name}</span>
+                  <svg
+                    className={`w-4 h-4 transition ${isDropdownOpen ? "rotate-180" : ""
+                      }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                    />
+                  </svg>
+                </button>
+
+                {isDropdownOpen && (
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-800">
+                    {children?.map((child) => (
+                      <button
+                        key={child.id}
+                        onClick={() => handleSelectChild(child.id)}
+                        className={`w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-800 transition flex items-center gap-2 ${child.id === selectedChildId
+                            ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+                            : "text-gray-700 dark:text-gray-300"
+                          }`}
+                      >
+                        <span className="text-lg">
+                          {child.gender === "male" ? "👨" : "👩"}
+                        </span>
+                        <span className="font-medium">{child.name}</span>
+                        {child.id === selectedChildId && (
+                          <span className="ml-auto">✓</span>
+                        )}
+                      </button>
+                    ))}
+                    <div className="border-t border-gray-200 dark:border-gray-800 px-4 py-3">
+                      <Link
+                        href="/settings"
+                        className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                      >
+                        Manage Children →
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <Link
               href="/dashboard"
               className="hidden sm:inline text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium transition"
