@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ReduxProvider } from "@/lib/providers";
+import { ChildProvider } from "@/lib/context/ChildContext";
+import { Navbar } from "@/components/Navbar";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -26,14 +28,16 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html
-        lang="en"
-        className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-      >
-        <body className="min-h-full flex flex-col">
-          <ReduxProvider>{children}</ReduxProvider>
-        </body>
-      </html>
+      <ChildProvider>
+        <html
+          lang="en"
+          className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+        >
+          <body className="min-h-full flex flex-col">
+            <ReduxProvider>{children}</ReduxProvider>
+          </body>
+        </html>
+      </ChildProvider>
     </ClerkProvider>
   );
 }

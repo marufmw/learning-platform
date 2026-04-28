@@ -1,4 +1,4 @@
-import { UserButton } from "@clerk/nextjs";
+import { Navbar } from "@/components/Navbar";
 
 export default function AuthenticatedLayout({
   children,
@@ -6,14 +6,9 @@ export default function AuthenticatedLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div>
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Foundation App</h1>
-          <UserButton />
-        </div>
-      </header>
-      <main className="container mx-auto px-4 py-8">{children}</main>
+    <div className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-white">
+      <Navbar />
+      <main>{children}</main>
     </div>
   );
 }
