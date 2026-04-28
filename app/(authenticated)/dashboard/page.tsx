@@ -75,24 +75,28 @@ export default function DashboardPage() {
 
         {/* Stats */}
         {selectedChild && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
             <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Screens Completed</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Modules</p>
               <p className="text-3xl font-bold text-blue-600">
-                {progressData?.completedScreens ?? 0}/{progressData?.totalScreens ?? 0}
+                {progressData?.modules.completed ?? 0}/{progressData?.modules.total ?? 0}
               </p>
             </div>
             <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Progress</p>
-              <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2">
-                <div
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all"
-                  style={{
-                    width: `${progressData?.progressPercentage ?? 0}%`,
-                  }}
-                ></div>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Quests</p>
+              <p className="text-3xl font-bold text-purple-600">
+                {progressData?.quests.completed ?? 0}/{progressData?.quests.total ?? 0}
+              </p>
+            </div>
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Screens</p>
+              <p className="text-3xl font-bold text-green-600">
+                {progressData?.screens.completed ?? 0}/{progressData?.screens.total ?? 0}
+              </p>
+            </div>
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Overall Progress</p>
+              <p className="text-3xl font-bold text-indigo-600">
                 {progressData?.progressPercentage ?? 0}%
               </p>
             </div>

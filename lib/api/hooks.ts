@@ -197,7 +197,12 @@ export function useGetAccessHierarchyQuery(
 export function useGetProgressQuery(
   params: { childId: string } | undefined,
   options?: { skip?: boolean }
-): UseQueryResult<{ totalScreens: number; completedScreens: number; progressPercentage: number }> {
+): UseQueryResult<{
+  modules: { completed: number; total: number };
+  quests: { completed: number; total: number };
+  screens: { completed: number; total: number };
+  progressPercentage: number;
+}> {
   return useQuery(
     params ? ["progress", params.childId] : null,
     () =>
