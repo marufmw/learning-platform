@@ -4,6 +4,10 @@ export default function SignUpPage() {
   return (
     <SignUp
       signInUrl="/sign-in"
+      unsafeMetadata={{
+        phoneNumber: "",
+        location: "",
+      }}
       appearance={{
         baseTheme: "dark",
         elements: {

@@ -59,8 +59,8 @@ function useMutation<TData, TVariables>(
     try {
       const result = await mutationFn(variables);
       return result;
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Unknown error";
+    } catch (err: any) {
+      const errorMsg = err?.response?.data?.message || err.message || "Unknown error";
       setError(errorMsg);
       throw err;
     } finally {
@@ -92,6 +92,15 @@ export function useGetMeQuery(
     ["me"],
     () => instance.get("/users/me").then((res) => res.data),
     options
+  );
+}
+
+export function useUpdateUserMutation(): UseMutationResult<
+  any,
+  { firstName?: string; lastName?: string; phoneNumber?: string; location?: string }
+> {
+  return useMutation(({ firstName, lastName, phoneNumber, location }) =>
+    instance.patch("/users/me", { firstName, lastName, phoneNumber, location }).then((res) => res.data)
   );
 }
 

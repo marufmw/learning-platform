@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import {
   useGetChildrenQuery,
   useCreateChildMutation,
   useUpdateChildMutation,
+  useGetMeQuery,
+  useUpdateUserMutation,
 } from "@/lib/api/hooks";
 import { useSelectedChild } from "@/lib/context/ChildContext";
 
@@ -15,16 +17,50 @@ export default function SettingsPage() {
   const { data: children, refetch } = useGetChildrenQuery(undefined, {
     skip: !isLoaded || !userId,
   });
+  const { data: user } = useGetMeQuery(undefined, {
+    skip: !isLoaded || !userId,
+  });
   const { mutate: createChild, isLoading: isCreating } =
     useCreateChildMutation();
   const { mutate: updateChild, isLoading: isUpdating } =
     useUpdateChildMutation();
+  const { mutate: updateUser, isLoading: isUpdatingProfile } =
+    useUpdateUserMutation();
   const { selectedChildId, setSelectedChild } = useSelectedChild();
 
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ name: "", age: "", gender: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState("");
+
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
+  const [profileFormData, setProfileFormData] = useState({
+    firstName: user?.firstName || "",
+    lastName: user?.lastName || "",
+    phoneNumber: user?.phoneNumber || "",
+    location: user?.location || "",
+  });
+
+  // Update profile form data when user data changes
+  useEffect(() => {
+    if (user) {
+      setProfileFormData({
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        phoneNumber: user.phoneNumber || "",
+        location: user.location || "",
+      });
+    }
+  }, [user]);
+
+  // Auto-select first child when children are created
+  useEffect(() => {
+    console.log("Child auto-select effect running:", { children, selectedChildId });
+    if (children && children.length > 0 && !selectedChildId) {
+      console.log("Auto-selecting first child:", children[0].id);
+      setSelectedChild(children[0].id);
+    }
+  }, [children, selectedChildId, setSelectedChild]);
 
   const handleSelectDefault = (childId: string) => {
     setSelectedChild(childId);
@@ -74,9 +110,14 @@ export default function SettingsPage() {
 
       setFormData({ name: "", age: "", gender: "" });
       setShowForm(false);
+
+      // Refetch children list - useEffect will auto-select first child if none selected
+      console.log("Before refetch, selectedChildId:", selectedChildId);
       await refetch();
+      console.log("After refetch, children:", children);
     } catch (err: any) {
-      setError(err.message || "Failed to save child");
+      const errorMessage = err.response?.data?.message || err.message || "Failed to save child";
+      setError(errorMessage);
     }
   };
 
@@ -88,6 +129,22 @@ export default function SettingsPage() {
       gender: child.gender || "",
     });
     setShowForm(true);
+  };
+
+  const handleProfileSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await updateUser({
+        firstName: profileFormData.firstName,
+        lastName: profileFormData.lastName,
+        phoneNumber: profileFormData.phoneNumber || undefined,
+        location: profileFormData.location || undefined,
+      });
+      setShowProfileEdit(false);
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || "Failed to update profile";
+      setError(errorMessage);
+    }
   };
 
   return (
@@ -118,7 +175,7 @@ export default function SettingsPage() {
                   My Children
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
-                  Select a default child and manage profiles
+                  Add children (first one becomes default) and manage profiles
                 </p>
               </div>
               {!showForm && (
@@ -278,6 +335,170 @@ export default function SettingsPage() {
                 </p>
               )}
             </div>
+          </div>
+
+          {/* Profile Section */}
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-8">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Profile
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                  Edit your personal information
+                </p>
+              </div>
+              {!showProfileEdit && (
+                <button
+                  onClick={() => {
+                    setProfileFormData({
+                      firstName: user?.firstName || "",
+                      lastName: user?.lastName || "",
+                      phoneNumber: user?.phoneNumber || "",
+                      location: user?.location || "",
+                    });
+                    setShowProfileEdit(true);
+                  }}
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-lg hover:shadow-lg transition font-medium"
+                >
+                  Edit Profile
+                </button>
+              )}
+            </div>
+
+            {error && (
+              <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg mb-6 border border-red-200 dark:border-red-900">
+                {error}
+              </div>
+            )}
+
+            {/* Edit Form */}
+            {showProfileEdit && (
+              <form onSubmit={handleProfileSubmit} className="mb-8 p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  Edit Profile
+                </h3>
+
+                <div className="grid sm:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      First Name
+                    </label>
+                    <input
+                      type="text"
+                      value={profileFormData.firstName}
+                      onChange={(e) =>
+                        setProfileFormData({ ...profileFormData, firstName: e.target.value })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                      placeholder="First name"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Last Name
+                    </label>
+                    <input
+                      type="text"
+                      value={profileFormData.lastName}
+                      onChange={(e) =>
+                        setProfileFormData({ ...profileFormData, lastName: e.target.value })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                      placeholder="Last name"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Phone Number (Optional)
+                    </label>
+                    <input
+                      type="tel"
+                      value={profileFormData.phoneNumber}
+                      onChange={(e) =>
+                        setProfileFormData({ ...profileFormData, phoneNumber: e.target.value })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                      placeholder="Phone number"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Location (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={profileFormData.location}
+                      onChange={(e) =>
+                        setProfileFormData({ ...profileFormData, location: e.target.value })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                      placeholder="City, State"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={isUpdatingProfile}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition font-medium"
+                  >
+                    {isUpdatingProfile ? "Saving..." : "Save"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowProfileEdit(false)}
+                    className="px-6 py-2 bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 transition font-medium"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Display Profile Info */}
+            {!showProfileEdit && (
+              <div className="space-y-4">
+                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">First Name</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">
+                    {user?.firstName || "—"}
+                  </p>
+                </div>
+                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Last Name</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">
+                    {user?.lastName || "—"}
+                  </p>
+                </div>
+                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Email</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">
+                    {user?.email || "—"}
+                  </p>
+                </div>
+                {user?.phoneNumber && (
+                  <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Phone</p>
+                    <p className="font-semibold text-gray-900 dark:text-white">
+                      {user.phoneNumber}
+                    </p>
+                  </div>
+                )}
+                {user?.location && (
+                  <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Location</p>
+                    <p className="font-semibold text-gray-900 dark:text-white">
+                      {user.location}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Account Section */}

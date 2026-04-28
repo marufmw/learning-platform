@@ -10,8 +10,8 @@ import {
 } from "@/lib/api/hooks";
 
 const PLANS = [
-  { name: "SOLO_EXPLORER", label: "Solo Explorer", price: "$9.99/mo" },
-  { name: "FAMILY_PACK", label: "Family Pack", price: "$19.99/mo" },
+  { name: "SOLO_EXPLORER", label: "Solo Explorer", price: "$199" },
+  { name: "FAMILY_PACK", label: "Family Pack", price: "$300" },
 ];
 
 export default function PaymentPage() {
@@ -38,7 +38,7 @@ export default function PaymentPage() {
         setError("No checkout URL received");
         setSelectedPlan(null);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message || "Failed to start plan");
       setSelectedPlan(null);
     }
