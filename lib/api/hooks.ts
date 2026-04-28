@@ -104,6 +104,15 @@ export function useUpdateUserMutation(): UseMutationResult<
   );
 }
 
+export function useUpdatePasswordMutation(): UseMutationResult<
+  any,
+  { currentPassword?: string; newPassword: string }
+> {
+  return useMutation(({ currentPassword, newPassword }) =>
+    instance.patch("/users/me/password", { currentPassword, newPassword }).then((res) => res.data)
+  );
+}
+
 // Module Registry
 export function useGetModuleRegistryQuery(
   _?: undefined,

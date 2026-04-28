@@ -9,6 +9,7 @@ import {
   useUpdateChildMutation,
   useGetMeQuery,
   useUpdateUserMutation,
+  useUpdatePasswordMutation,
 } from "@/lib/api/hooks";
 import { useSelectedChild } from "@/lib/context/ChildContext";
 
@@ -26,6 +27,8 @@ export default function SettingsPage() {
     useUpdateChildMutation();
   const { mutate: updateUser, isLoading: isUpdatingProfile } =
     useUpdateUserMutation();
+  const { mutate: updatePassword, isLoading: isUpdatingPassword } =
+    useUpdatePasswordMutation();
   const { selectedChildId, setSelectedChild } = useSelectedChild();
 
   const [showForm, setShowForm] = useState(false);
@@ -39,6 +42,13 @@ export default function SettingsPage() {
     lastName: user?.lastName || "",
     phoneNumber: user?.phoneNumber || "",
     location: user?.location || "",
+  });
+
+  const [showPasswordEdit, setShowPasswordEdit] = useState(false);
+  const [passwordFormData, setPasswordFormData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
   // Update profile form data when user data changes
@@ -110,9 +120,7 @@ export default function SettingsPage() {
       setShowForm(false);
 
       // Refetch children list - useEffect will auto-select first child if none selected
-      console.log("Before refetch, selectedChildId:", selectedChildId);
       await refetch();
-      console.log("After refetch, children:", children);
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || "Failed to save child";
       setError(errorMessage);
@@ -141,6 +149,50 @@ export default function SettingsPage() {
       setShowProfileEdit(false);
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || "Failed to update profile";
+      setError(errorMessage);
+    }
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    const isSettingPassword = !user?.hasPassword;
+
+    if (!isSettingPassword && !passwordFormData.currentPassword) {
+      setError("Current password is required");
+      return;
+    }
+
+    if (!passwordFormData.newPassword) {
+      setError("New password is required");
+      return;
+    }
+
+    if (passwordFormData.newPassword.length < 8) {
+      setError("New password must be at least 8 characters");
+      return;
+    }
+
+    if (passwordFormData.newPassword !== passwordFormData.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    try {
+      const payload: { currentPassword?: string; newPassword: string } = {
+        newPassword: passwordFormData.newPassword,
+      };
+      if (user?.hasPassword && passwordFormData.currentPassword) {
+        payload.currentPassword = passwordFormData.currentPassword;
+      }
+      await updatePassword(payload);
+      setPasswordFormData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setShowPasswordEdit(false);
+      // Show success - ideally with a toast/notification
+      setError("");
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || "Failed to update password";
       setError(errorMessage);
     }
   };
@@ -183,7 +235,7 @@ export default function SettingsPage() {
                     setEditingId(null);
                     setFormData({ name: "", age: "", gender: "" });
                   }}
-                  className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-lg hover:shadow-lg transition font-medium"
+                  className="bg-linear-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-lg hover:shadow-lg transition font-medium"
                 >
                   + Add Child
                 </button>
@@ -357,7 +409,7 @@ export default function SettingsPage() {
                     });
                     setShowProfileEdit(true);
                   }}
-                  className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-lg hover:shadow-lg transition font-medium"
+                  className="bg-linear-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-lg hover:shadow-lg transition font-medium"
                 >
                   Edit Profile
                 </button>
@@ -499,6 +551,112 @@ export default function SettingsPage() {
             )}
           </div>
 
+          {/* Password Section */}
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-8">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Password
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                  {user?.hasPassword ? "Change your account password" : "Set a password for your account"}
+                </p>
+              </div>
+              {!showPasswordEdit && (
+                <button
+                  onClick={() => {
+                    setPasswordFormData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+                    setShowPasswordEdit(true);
+                  }}
+                  className="bg-linear-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-lg hover:shadow-lg transition font-medium"
+                >
+                  {user?.hasPassword ? "Change Password" : "Set Password"}
+                </button>
+              )}
+            </div>
+
+            {error && (
+              <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg mb-6 border border-red-200 dark:border-red-900">
+                {error}
+              </div>
+            )}
+
+            {/* Edit Form */}
+            {showPasswordEdit && (
+              <form onSubmit={handlePasswordSubmit} className="mb-8 p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  Change Password
+                </h3>
+
+                <div className="space-y-4 mb-4">
+                  {user?.hasPassword && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Current Password
+                      </label>
+                      <input
+                        type="password"
+                        value={passwordFormData.currentPassword}
+                        onChange={(e) =>
+                          setPasswordFormData({ ...passwordFormData, currentPassword: e.target.value })
+                        }
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                        placeholder="Enter your current password"
+                      />
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      New Password
+                    </label>
+                    <input
+                      type="password"
+                      value={passwordFormData.newPassword}
+                      onChange={(e) =>
+                        setPasswordFormData({ ...passwordFormData, newPassword: e.target.value })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                      placeholder="Enter a new password (min 8 characters)"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Confirm Password
+                    </label>
+                    <input
+                      type="password"
+                      value={passwordFormData.confirmPassword}
+                      onChange={(e) =>
+                        setPasswordFormData({ ...passwordFormData, confirmPassword: e.target.value })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                      placeholder="Confirm your new password"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={isUpdatingPassword}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition font-medium"
+                  >
+                    {isUpdatingPassword ? "Updating..." : "Update Password"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordEdit(false)}
+                    className="px-6 py-2 bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 transition font-medium"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+
           {/* Account Section */}
           <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
@@ -506,7 +664,7 @@ export default function SettingsPage() {
             </h2>
             <Link
               href="/payment"
-              className="inline-block px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:shadow-lg transition font-medium"
+              className="inline-block px-6 py-3 bg-linear-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:shadow-lg transition font-medium"
             >
               Manage Plans & Billing →
             </Link>
