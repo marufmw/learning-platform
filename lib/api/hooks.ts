@@ -271,7 +271,9 @@ export function useGetChildDashboardQuery(
     modules: { completed: number; total: number };
     quests: { completed: number; total: number };
     screens: { completed: number; total: number };
-    progressPercentage: number;
+    moduleProgressPercentage: number;
+    questProgressPercentage: number;
+    screenProgressPercentage: number;
   };
   module_progress: {
     module: number;

@@ -148,7 +148,7 @@ export default function DashboardPage() {
         <StatCard label="Modules" value={`${dashboardData?.progress?.modules.completed ?? 0}/${dashboardData?.progress?.modules.total ?? 0}`} color="var(--dc-green)" icon={Layers} />
         <StatCard label="Quests" value={`${dashboardData?.progress?.quests.completed ?? 0}/${dashboardData?.progress?.quests.total ?? 0}`} color="#c084fc" icon={Trophy} />
         <StatCard label="Screens" value={`${dashboardData?.progress?.screens.completed ?? 0}/${dashboardData?.progress?.screens.total ?? 0}`} color="var(--dc-blurple)" icon={BookOpen} />
-        <StatCard label="Overall" value={`${dashboardData?.progress?.progressPercentage ?? 0}%`} color="var(--dc-yellow)" icon={TrendingUp} />
+        <StatCard label="Overall" value={`${dashboardData?.progress?.screenProgressPercentage ?? 0}%`} color="var(--dc-yellow)" icon={TrendingUp} />
       </div>
 
       {/* Brain type */}
@@ -198,7 +198,7 @@ export default function DashboardPage() {
             <div
               className="h-full rounded-full transition-all duration-700"
               style={{
-                width: `${dashboardData?.progress?.progressPercentage ?? 0}%`,
+                width: `${dashboardData?.progress?.screenProgressPercentage ?? 0}%`,
                 background: "var(--dc-green)",
               }}
             />
