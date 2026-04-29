@@ -7,7 +7,7 @@ import {
   useGetScreenQuery,
   useSaveScreenMutation,
   useGetModuleRegistryQuery,
-  useGetAccessHierarchyQuery,
+  useGetAccessStatusQuery,
 } from "@/lib/api/hooks";
 import { useSelectedChild } from "@/lib/context/ChildContext";
 
@@ -29,61 +29,35 @@ export default function ScreenPage() {
     skip: !isLoaded || !childId,
   });
 
-  const { data: accessStatus } = useGetAccessHierarchyQuery(
-    childId && isLoaded ? { childId } : undefined,
+  const { data: accessStatus, refetch: refetchAccessStatus } = useGetAccessStatusQuery(
+    childId && isLoaded
+      ? { childId, module: moduleNo, quest: questNo, screen: screenNo }
+      : undefined,
     { skip: !childId || !isLoaded }
   );
 
-  // Calculate validation error synchronously
+  const screenStatus =
+    accessStatus?.[`module_${moduleNo}`]?.[`quest_${questNo}`]?.[`screen_${screenNo}`];
+
+  // Validate registry bounds first, then access status
   let validationError = "";
-  if (registry && accessStatus && childId) {
-    const module = registry?.perModule?.[moduleNo];
-
-    if (!module) {
+  if (registry && childId) {
+    const mod = registry?.perModule?.[moduleNo];
+    if (!mod) {
       validationError = "Module not found";
-    } else {
-      // Check if module is unlocked and accessible
-      const moduleStatus = accessStatus?.[`module_${moduleNo}`];
-      if (!moduleStatus?.unlocked) {
-        if (moduleStatus?.unlockDate) {
-          const unlockDate = new Date(moduleStatus.unlockDate).toLocaleDateString();
-          validationError = `Module is locked. Unlocks on ${unlockDate}`;
-        } else {
-          validationError = `Module is locked`;
-        }
-      } else if (!moduleStatus?.accessible) {
-        validationError = `Module is inaccessible. Complete previous modules first.`;
-      } else {
-        const questScreenCount = module?.quests?.[questNo]?.screens;
-
-        if (questScreenCount === undefined) {
-          validationError = "Quest not found";
-        } else if (screenNo > questScreenCount || screenNo < 1) {
-          validationError = "Screen not found";
-        } else {
-          // Check if quest is accessible
-          const questStatus = accessStatus?.[`module_${moduleNo}`]?.quests?.[`quest_${questNo}`];
-          if (!questStatus?.accessible) {
-            if (questStatus?.unlockDate) {
-              const unlockDate = new Date(questStatus.unlockDate).toLocaleDateString();
-              validationError = `Quest is locked. Unlocks on ${unlockDate}`;
-            } else {
-              validationError = "Quest is inaccessible. Complete previous quests first.";
-            }
-          } else {
-            // Check if screen is accessible
-            const screenStatus = accessStatus?.[`module_${moduleNo}`]?.quests?.[`quest_${questNo}`]?.screens?.[`screen_${screenNo}`];
-            if (!screenStatus?.accessible) {
-              if (screenStatus?.unlockDate) {
-                const unlockDate = new Date(screenStatus.unlockDate).toLocaleDateString();
-                validationError = `Screen is locked. Unlocks on ${unlockDate}`;
-              } else {
-                validationError = "Screen is inaccessible. Complete previous screens first.";
-              }
-            }
-          }
-        }
-      }
+    } else if (mod.quests[questNo] === undefined) {
+      validationError = "Quest not found";
+    } else if (screenNo < 1 || screenNo > mod.quests[questNo].screens) {
+      validationError = "Screen not found";
+    }
+  }
+  if (!validationError && accessStatus && screenStatus) {
+    if (!screenStatus.unlocked) {
+      validationError = screenStatus.unlockDate
+        ? `Locked. Unlocks on ${new Date(screenStatus.unlockDate).toLocaleDateString()}`
+        : "Content is locked. Purchase a plan to unlock.";
+    } else if (!screenStatus.accessible) {
+      validationError = "Complete previous content first.";
     }
   }
 
@@ -95,21 +69,15 @@ export default function ScreenPage() {
   );
 
   const { mutate: saveScreen, isLoading: isSaving } = useSaveScreenMutation();
-  const { refetch: refetchAccessHierarchy } = useGetAccessHierarchyQuery(
-    childId && isLoaded ? { childId } : undefined,
-    { skip: !childId || !isLoaded }
-  );
   const [dataLoaded, setDataLoaded] = useState(false);
 
   // Load existing data or initialize empty
   useEffect(() => {
     if (screenData) {
-      // Existing progress found
       const data = screenData.data ?? {};
       setJsonData(data);
       setRawJsonText(JSON.stringify(data, null, 2));
     } else if (isLoaded && accessStatus && !isLoading) {
-      // No existing progress, initialize with empty data
       setJsonData({});
       setRawJsonText("{}");
     }
@@ -144,8 +112,7 @@ export default function ScreenPage() {
         data: dataToSubmit,
       });
 
-      // Refetch access hierarchy to get updated completion status
-      await refetchAccessHierarchy();
+      await refetchAccessStatus();
 
       // Navigate to next screen
       const module = registry?.perModule?.[moduleNo];

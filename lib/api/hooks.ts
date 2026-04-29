@@ -97,11 +97,27 @@ export function useGetMeQuery(
 
 export function useUpdateUserMutation(): UseMutationResult<
   any,
-  { firstName?: string; lastName?: string; phoneNumber?: string; location?: string }
+  {
+    name?: string;
+    phoneNumber?: string;
+    country?: string;
+    state?: string;
+    timezone?: string;
+    age?: number;
+    zipcode?: string;
+    profileImage?: File;
+  }
 > {
-  return useMutation(({ firstName, lastName, phoneNumber, location }) =>
-    instance.patch("/users/me", { firstName, lastName, phoneNumber, location }).then((res) => res.data)
-  );
+  return useMutation(({ profileImage, ...fields }) => {
+    const form = new FormData();
+    Object.entries(fields).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== "") form.append(k, String(v));
+    });
+    if (profileImage) form.append("profileImage", profileImage);
+    return instance
+      .patch("/users/me", form, { headers: { "Content-Type": "multipart/form-data" } })
+      .then((res) => res.data);
+  });
 }
 
 export function useUpdatePasswordMutation(): UseMutationResult<
@@ -196,40 +212,30 @@ export function useGetAccessStatusQuery(
   );
 }
 
-// Access Hierarchy
-export function useGetAccessHierarchyQuery(
-  params: { childId: string } | undefined,
+// Access List
+import type { AccessListResponse } from "./access-list";
+
+export function useGetAccessListQuery(
+  params: { childId: string; include?: string[] } | undefined,
   options?: { skip?: boolean }
-): UseQueryResult<any> {
+): UseQueryResult<AccessListResponse> {
   return useQuery(
-    params ? ["access-hierarchy", params.childId] : null,
+    params ? ["access-list", params.childId, ...(params.include ?? [])] : null,
     () =>
       instance
-        .get("/modules/access-hierarchy", { params })
+        .get("/modules/access-list", {
+          params: {
+            childId: params!.childId,
+            ...(params?.include?.length
+              ? { include: params.include.join(",") }
+              : {}),
+          },
+        })
         .then((res) => res.data),
     { skip: !params || options?.skip }
   );
 }
 
-// Progress
-export function useGetProgressQuery(
-  params: { childId: string } | undefined,
-  options?: { skip?: boolean }
-): UseQueryResult<{
-  modules: { completed: number; total: number };
-  quests: { completed: number; total: number };
-  screens: { completed: number; total: number };
-  progressPercentage: number;
-}> {
-  return useQuery(
-    params ? ["progress", params.childId] : null,
-    () =>
-      instance
-        .get("/modules/progress", { params })
-        .then((res) => res.data),
-    { skip: !params || options?.skip }
-  );
-}
 
 // Progress
 export function useSaveScreenMutation(): UseMutationResult<
@@ -247,6 +253,62 @@ export function useSaveScreenMutation(): UseMutationResult<
     instance
       .post(`/children/${childId}/progress/${moduleNo}/${questNo}/${screenNo}`, body)
       .then((res) => res.data)
+  );
+}
+
+// Dashboard
+export function useGetChildDashboardQuery(
+  params: { childId: string; include?: string[] } | undefined,
+  options?: { skip?: boolean }
+): UseQueryResult<{
+  brain_data: {
+    status: "completed" | "pending";
+    type: string;
+    answers: Record<string, number>;
+    counts: { A: number; B: number; C: number; D: number };
+  };
+  progress: {
+    modules: { completed: number; total: number };
+    quests: { completed: number; total: number };
+    screens: { completed: number; total: number };
+    progressPercentage: number;
+  };
+  module_progress: {
+    module: number;
+    status: "initialized" | "ongoing" | "completed";
+    accessible: boolean;
+    unlocked: boolean;
+    unlockedAt: string | null;
+  }[];
+  quest_progress?: {
+    module: number;
+    quest: number;
+    status: "initialized" | "ongoing" | "completed";
+    accessible: boolean;
+    unlocked: boolean;
+    unlockedAt: string | null;
+  }[];
+  screen_progress?: {
+    module: number;
+    quest: number;
+    screen: number;
+    status: "initialized" | "ongoing" | "completed";
+    accessible: boolean;
+    unlocked: boolean;
+    unlockedAt: string | null;
+  }[];
+}> {
+  return useQuery(
+    params ? ["child-dashboard", params.childId, ...(params.include ?? [])] : null,
+    () =>
+      instance
+        .get(`/dashboard/${params!.childId}`, {
+          params: params?.include?.length
+            ? { include: params.include.join(",") }
+            : undefined,
+        })
+        .then((res) => res.data),
+    { skip: !params || options?.skip }
   );
 }
 

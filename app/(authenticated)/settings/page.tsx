@@ -37,11 +37,16 @@ export default function SettingsPage() {
   const [error, setError] = useState("");
 
   const [showProfileEdit, setShowProfileEdit] = useState(false);
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
   const [profileFormData, setProfileFormData] = useState({
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
+    name: user?.name || "",
     phoneNumber: user?.phoneNumber || "",
-    location: user?.location || "",
+    country: user?.country || "",
+    state: user?.state || "",
+    timezone: user?.timezone || "",
+    age: user?.age ? String(user.age) : "",
+    zipcode: user?.zipcode || "",
   });
 
   const [showPasswordEdit, setShowPasswordEdit] = useState(false);
@@ -51,14 +56,16 @@ export default function SettingsPage() {
     confirmPassword: "",
   });
 
-  // Update profile form data when user data changes
   useEffect(() => {
     if (user) {
       setProfileFormData({
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
+        name: user.name || "",
         phoneNumber: user.phoneNumber || "",
-        location: user.location || "",
+        country: user.country || "",
+        state: user.state || "",
+        timezone: user.timezone || "",
+        age: user.age ? String(user.age) : "",
+        zipcode: user.zipcode || "",
       });
     }
   }, [user]);
@@ -137,15 +144,29 @@ export default function SettingsPage() {
     setShowForm(true);
   };
 
+  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setProfileImageFile(file);
+    setProfileImagePreview(URL.createObjectURL(file));
+  };
+
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     try {
       await updateUser({
-        firstName: profileFormData.firstName,
-        lastName: profileFormData.lastName,
+        name: profileFormData.name || undefined,
         phoneNumber: profileFormData.phoneNumber || undefined,
-        location: profileFormData.location || undefined,
+        country: profileFormData.country || undefined,
+        state: profileFormData.state || undefined,
+        timezone: profileFormData.timezone || undefined,
+        age: profileFormData.age ? Number(profileFormData.age) : undefined,
+        zipcode: profileFormData.zipcode || undefined,
+        profileImage: profileImageFile ?? undefined,
       });
+      setProfileImageFile(null);
+      setProfileImagePreview(null);
       setShowProfileEdit(false);
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || "Failed to update profile";
@@ -391,24 +412,12 @@ export default function SettingsPage() {
           <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-8">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Profile
-                </h2>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
-                  Edit your personal information
-                </p>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Profile</h2>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">Edit your personal information</p>
               </div>
               {!showProfileEdit && (
                 <button
-                  onClick={() => {
-                    setProfileFormData({
-                      firstName: user?.firstName || "",
-                      lastName: user?.lastName || "",
-                      phoneNumber: user?.phoneNumber || "",
-                      location: user?.location || "",
-                    });
-                    setShowProfileEdit(true);
-                  }}
+                  onClick={() => setShowProfileEdit(true)}
                   className="bg-linear-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-lg hover:shadow-lg transition font-medium"
                 >
                   Edit Profile
@@ -423,70 +432,114 @@ export default function SettingsPage() {
             )}
 
             {/* Edit Form */}
-            {showProfileEdit && (
-              <form onSubmit={handleProfileSubmit} className="mb-8 p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  Edit Profile
-                </h3>
-
-                <div className="grid sm:grid-cols-2 gap-4 mb-4">
+            {showProfileEdit ? (
+              <form onSubmit={handleProfileSubmit} className="space-y-6">
+                {/* Avatar upload */}
+                <div className="flex items-center gap-6">
+                  <div className="relative w-20 h-20 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 shrink-0">
+                    {profileImagePreview || user?.profileImage ? (
+                      <img
+                        src={profileImagePreview ?? user.profileImage}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-3xl text-gray-400">
+                        {user?.name?.[0]?.toUpperCase() ?? "?"}
+                      </div>
+                    )}
+                  </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      First Name
+                    <label className="cursor-pointer px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition text-sm font-medium">
+                      {profileImageFile ? profileImageFile.name : "Upload Photo"}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png,image/webp"
+                        className="hidden"
+                        onChange={handleProfileImageChange}
+                      />
                     </label>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">JPG, PNG or WebP — max 2MB</p>
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name</label>
                     <input
                       type="text"
-                      value={profileFormData.firstName}
-                      onChange={(e) =>
-                        setProfileFormData({ ...profileFormData, firstName: e.target.value })
-                      }
+                      value={profileFormData.name}
+                      onChange={(e) => setProfileFormData({ ...profileFormData, name: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                      placeholder="First name"
+                      placeholder="Your full name"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Last Name
-                    </label>
-                    <input
-                      type="text"
-                      value={profileFormData.lastName}
-                      onChange={(e) =>
-                        setProfileFormData({ ...profileFormData, lastName: e.target.value })
-                      }
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                      placeholder="Last name"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Phone Number (Optional)
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Phone (Optional)</label>
                     <input
                       type="tel"
                       value={profileFormData.phoneNumber}
-                      onChange={(e) =>
-                        setProfileFormData({ ...profileFormData, phoneNumber: e.target.value })
-                      }
+                      onChange={(e) => setProfileFormData({ ...profileFormData, phoneNumber: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                      placeholder="Phone number"
+                      placeholder="+1 234 567 8900"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Location (Optional)
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Age (Optional)</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="120"
+                      value={profileFormData.age}
+                      onChange={(e) => setProfileFormData({ ...profileFormData, age: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                      placeholder="Age"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Country (Optional)</label>
                     <input
                       type="text"
-                      value={profileFormData.location}
-                      onChange={(e) =>
-                        setProfileFormData({ ...profileFormData, location: e.target.value })
-                      }
+                      value={profileFormData.country}
+                      onChange={(e) => setProfileFormData({ ...profileFormData, country: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                      placeholder="City, State"
+                      placeholder="US"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">State (Optional)</label>
+                    <input
+                      type="text"
+                      value={profileFormData.state}
+                      onChange={(e) => setProfileFormData({ ...profileFormData, state: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                      placeholder="California"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Timezone (Optional)</label>
+                    <input
+                      type="text"
+                      value={profileFormData.timezone}
+                      onChange={(e) => setProfileFormData({ ...profileFormData, timezone: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                      placeholder="America/Los_Angeles"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Zip Code (Optional)</label>
+                    <input
+                      type="text"
+                      value={profileFormData.zipcode}
+                      onChange={(e) => setProfileFormData({ ...profileFormData, zipcode: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                      placeholder="90001"
                     />
                   </div>
                 </div>
@@ -501,52 +554,45 @@ export default function SettingsPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setShowProfileEdit(false)}
+                    onClick={() => { setShowProfileEdit(false); setProfileImageFile(null); setProfileImagePreview(null); }}
                     className="px-6 py-2 bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 transition font-medium"
                   >
                     Cancel
                   </button>
                 </div>
               </form>
-            )}
+            ) : (
+              <div className="flex items-start gap-6">
+                {/* Avatar */}
+                <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 shrink-0">
+                  {user?.profileImage ? (
+                    <img src={user.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-gray-500 dark:text-gray-400">
+                      {user?.name?.[0]?.toUpperCase() ?? "?"}
+                    </div>
+                  )}
+                </div>
 
-            {/* Display Profile Info */}
-            {!showProfileEdit && (
-              <div className="space-y-4">
-                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">First Name</p>
-                  <p className="font-semibold text-gray-900 dark:text-white">
-                    {user?.firstName || "—"}
-                  </p>
+                <div className="grid sm:grid-cols-2 gap-3 flex-1">
+                  {[
+                    { label: "Name", value: user?.name },
+                    { label: "Email", value: user?.email },
+                    { label: "Phone", value: user?.phoneNumber },
+                    { label: "Age", value: user?.age },
+                    { label: "Country", value: user?.country },
+                    { label: "State", value: user?.state },
+                    { label: "Timezone", value: user?.timezone },
+                    { label: "Zip Code", value: user?.zipcode },
+                  ].map(({ label, value }) =>
+                    value ? (
+                      <div key={label} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
+                        <p className="font-semibold text-gray-900 dark:text-white">{value}</p>
+                      </div>
+                    ) : null
+                  )}
                 </div>
-                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Last Name</p>
-                  <p className="font-semibold text-gray-900 dark:text-white">
-                    {user?.lastName || "—"}
-                  </p>
-                </div>
-                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Email</p>
-                  <p className="font-semibold text-gray-900 dark:text-white">
-                    {user?.email || "—"}
-                  </p>
-                </div>
-                {user?.phoneNumber && (
-                  <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Phone</p>
-                    <p className="font-semibold text-gray-900 dark:text-white">
-                      {user.phoneNumber}
-                    </p>
-                  </div>
-                )}
-                {user?.location && (
-                  <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Location</p>
-                    <p className="font-semibold text-gray-900 dark:text-white">
-                      {user.location}
-                    </p>
-                  </div>
-                )}
               </div>
             )}
           </div>

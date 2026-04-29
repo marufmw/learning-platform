@@ -2,19 +2,18 @@
 
 import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
-import { useGetAccessHierarchyQuery, useGetChildrenQuery } from "@/lib/api/hooks";
+import { useGetAccessListQuery, useGetChildrenQuery } from "@/lib/api/hooks";
+import { getAccessInfo } from "@/lib/api/access-list";
 import { useSelectedChild } from "@/lib/context/ChildContext";
-import { useRouter } from "next/navigation";
 
 export default function ModulesPage() {
-  const router = useRouter();
   const { isLoaded, userId } = useAuth();
   const { data: children } = useGetChildrenQuery(undefined, {
     skip: !isLoaded || !userId,
   });
   const { selectedChildId } = useSelectedChild();
 
-  const { data: accessStatus, isLoading } = useGetAccessHierarchyQuery(
+  const { data: accessList, isLoading } = useGetAccessListQuery(
     selectedChildId ? { childId: selectedChildId } : undefined,
     { skip: !selectedChildId }
   );
@@ -48,11 +47,10 @@ export default function ModulesPage() {
   return (
     <div className="bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white flex items-center gap-3 mb-2">
             <span className="text-5xl">{selectedChild.gender === "male" ? "👨" : "👩"}</span>
-            <span>{selectedChild.name}'s Modules</span>
+            <span>{selectedChild.name}&apos;s Modules</span>
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Choose a module to explore and learn
@@ -68,13 +66,12 @@ export default function ModulesPage() {
           </div>
         )}
 
-        {/* Modules Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {modules.map((moduleNo) => {
-            const status = accessStatus?.[`module_${moduleNo}`];
-            const isUnlocked = status?.unlocked ?? false;
-            const isAccessible = status?.accessible ?? false;
-            const isCompleted = status?.isCompleted ?? false;
+            const info = getAccessInfo("module", accessList, moduleNo);
+            const isUnlocked = info?.unlocked ?? false;
+            const isAccessible = info?.accessible ?? false;
+            const isCompleted = info?.isCompleted ?? false;
             const canAccess = isUnlocked && isAccessible;
 
             return (
@@ -100,12 +97,10 @@ export default function ModulesPage() {
 
                 {!isUnlocked && (
                   <div className="space-y-2">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      🔒 Locked
-                    </p>
-                    {status?.unlockDate ? (
+                    <p className="text-sm text-gray-600 dark:text-gray-400">🔒 Locked</p>
+                    {info?.unlockedAt ? (
                       <p className="text-xs text-gray-500 dark:text-gray-500">
-                        Unlocks on {new Date(status.unlockDate).toLocaleDateString()}
+                        Unlocks on {new Date(info.unlockedAt).toLocaleDateString()}
                       </p>
                     ) : (
                       <p className="text-xs text-gray-500 dark:text-gray-500">
@@ -117,9 +112,7 @@ export default function ModulesPage() {
 
                 {isUnlocked && !isAccessible && (
                   <div className="space-y-2">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      🔐 Inaccessible
-                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">🔐 Inaccessible</p>
                     <p className="text-xs text-gray-500 dark:text-gray-500">
                       Complete Module {moduleNo - 1} to unlock
                     </p>
