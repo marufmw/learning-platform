@@ -6,25 +6,24 @@ const instance = axios.create({
 });
 
 instance.interceptors.request.use(async (config) => {
-  let token = (typeof window !== "undefined" && (window as any).__clerkToken) || null;
-
-  // If no cached token, try to fetch one
-  if (!token && typeof window !== "undefined") {
-    const getToken = (window as any).__getClerkToken;
-    if (getToken) {
-      try {
-        token = await getToken();
-        if (token) {
-          (window as any).__clerkToken = token;
-        }
-      } catch (e) {
-        console.error("Failed to get Clerk token in request interceptor:", e);
-      }
-    }
+  if (typeof window === "undefined") {
+    return config;
   }
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const getToken = (window as any).__getClerkToken;
+  if (!getToken) {
+    return config;
+  }
+
+  try {
+    // Always get a fresh token for requests to ensure it's not expired
+    // The { forceRefresh: true } option is not standard, but we can skip caching
+    const token = await getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  } catch (e) {
+    console.error("Failed to get Clerk token:", e);
   }
 
   return config;
@@ -34,7 +33,10 @@ instance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      console.error("Unauthorized - check Clerk token validity");
+      if (typeof window !== "undefined") {
+        (window as any).__clerkToken = null;
+        window.location.href = "/";
+      }
     }
     return Promise.reject(error);
   }
