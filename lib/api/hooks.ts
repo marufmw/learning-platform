@@ -122,6 +122,11 @@ export function useUpdateChildMutation() {
   return wrapMutation<any, { id: string; name?: string; age?: number; gender?: string }>(trigger, result);
 }
 
+export function useDeleteChildMutation() {
+  const [trigger, result] = apiSlice.useDeleteChildMutation();
+  return wrapMutation<any, string>(trigger, result);
+}
+
 // ---------------------------------------------------------------------------
 // Payment
 // ---------------------------------------------------------------------------
@@ -139,6 +144,11 @@ export function useStartTrialMutation() {
 export function useStartPlanMutation() {
   const [trigger, result] = apiSlice.useStartPlanMutation();
   return wrapMutation<any, { planName: string }>(trigger, result);
+}
+
+export function useSavePaymentMethodMutation() {
+  const [trigger, result] = apiSlice.useSavePaymentMethodMutation();
+  return wrapMutation<any, { paymentMethodId: string }>(trigger, result);
 }
 
 // ---------------------------------------------------------------------------

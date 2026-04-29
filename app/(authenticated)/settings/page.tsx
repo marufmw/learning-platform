@@ -7,6 +7,7 @@ import {
   useGetChildrenQuery,
   useCreateChildMutation,
   useUpdateChildMutation,
+  useDeleteChildMutation,
   useGetMeQuery,
   useUpdateUserMutation,
   useUpdatePasswordMutation,
@@ -147,6 +148,7 @@ export default function SettingsPage() {
   const { data: user } = useGetMeQuery(undefined, { skip: !isLoaded || !userId });
   const { mutate: createChild, isLoading: isCreating } = useCreateChildMutation();
   const { mutate: updateChild, isLoading: isUpdating } = useUpdateChildMutation();
+  const { mutate: deleteChild, isLoading: isDeletingChild } = useDeleteChildMutation();
   const { mutate: updateUser, isLoading: isUpdatingProfile } = useUpdateUserMutation();
   const { mutate: updatePassword, isLoading: isUpdatingPassword } = useUpdatePasswordMutation();
   const { mutate: requestDeletion, isLoading: isRequestingDeletion } = useRequestDeletionMutation();
@@ -176,6 +178,9 @@ export default function SettingsPage() {
   const [deletionStep, setDeletionStep] = useState<"idle" | "confirm" | "otp">("idle");
   const [deletionOtp, setDeletionOtp] = useState(["", "", "", "", "", ""]);
   const [deletionError, setDeletionError] = useState("");
+
+  // Child deletion
+  const [childToDelete, setChildToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -225,6 +230,21 @@ export default function SettingsPage() {
     setFormData({ name: child.name, age: String(child.age || ""), gender: child.gender || "" });
     setShowForm(true);
     setChildError("");
+  };
+
+  const handleDeleteChild = async () => {
+    if (!childToDelete) return;
+    try {
+      await deleteChild(childToDelete);
+      setChildToDelete(null);
+      if (childToDelete === selectedChildId) {
+        const remaining = children?.filter((c) => c.id !== childToDelete);
+        if (remaining?.length) setSelectedChild(remaining[0].id);
+      }
+      await refetch();
+    } catch (err: any) {
+      setChildError(err.response?.data?.message || err.message || "Failed to delete child");
+    }
   };
 
   const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -419,6 +439,21 @@ export default function SettingsPage() {
                         }}
                       >
                         <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setChildToDelete(child.id)}
+                        className="p-1.5 rounded-lg transition-colors"
+                        style={{ color: "var(--dc-text-muted)" }}
+                        onMouseEnter={e => {
+                          (e.currentTarget as HTMLElement).style.background = "rgba(242,63,66,0.15)";
+                          (e.currentTarget as HTMLElement).style.color = "var(--dc-red)";
+                        }}
+                        onMouseLeave={e => {
+                          (e.currentTarget as HTMLElement).style.background = "transparent";
+                          (e.currentTarget as HTMLElement).style.color = "var(--dc-text-muted)";
+                        }}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
@@ -639,6 +674,74 @@ export default function SettingsPage() {
         </div>
 
       </div>
+
+      {/* Child deletion confirmation modal */}
+      {childToDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.7)" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setChildToDelete(null); }}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border shadow-2xl"
+            style={{ background: "var(--dc-bg-secondary)", borderColor: "rgba(242,63,66,0.3)" }}
+          >
+            <div className="flex items-center gap-3 px-5 py-4 border-b" style={{ borderColor: "var(--dc-border)" }}>
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                style={{ background: "rgba(242,63,66,0.15)" }}>
+                <Trash2 className="w-4 h-4" style={{ color: "var(--dc-red)" }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-white">Delete Child Profile</p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--dc-text-muted)" }}>
+                  This action cannot be undone
+                </p>
+              </div>
+              <button
+                onClick={() => setChildToDelete(null)}
+                className="p-1.5 rounded-lg transition-colors shrink-0"
+                style={{ color: "var(--dc-text-muted)" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--dc-bg-modifier-hover)"; (e.currentTarget as HTMLElement).style.color = "white"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "var(--dc-text-muted)"; }}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              <div className="flex items-start gap-2.5 p-3 rounded-lg border"
+                style={{ background: "rgba(242,63,66,0.06)", borderColor: "rgba(242,63,66,0.15)" }}>
+                <TriangleAlert className="w-4 h-4 mt-0.5 shrink-0" style={{ color: "var(--dc-red)" }} />
+                <p className="text-xs leading-relaxed" style={{ color: "var(--dc-text-muted)" }}>
+                  All data associated with this child profile, including progress and achievements, will be permanently deleted.
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={handleDeleteChild}
+                  disabled={isDeletingChild}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold text-white transition-opacity hover:opacity-80 disabled:opacity-40"
+                  style={{ background: "var(--dc-red)" }}
+                >
+                  {isDeletingChild
+                    ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Deleting...</>
+                    : <><Trash2 className="w-4 h-4" /> Delete</>}
+                </button>
+                <button
+                  onClick={() => setChildToDelete(null)}
+                  className="px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors"
+                  style={{ background: "var(--dc-bg-modifier-hover)", color: "var(--dc-text-muted)" }}
+                  onMouseEnter={e => (e.currentTarget.style.color = "var(--dc-text-normal)")}
+                  onMouseLeave={e => (e.currentTarget.style.color = "var(--dc-text-muted)")}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* OTP modal */}
       {deletionStep === "otp" && (

@@ -214,7 +214,7 @@ export default function DashboardPage() {
             unlockedAt: null,
             isCompleted: false,
             completedAt: null,
-          }))).map((m, idx, arr) => {
+          }))).map((m: any, idx: any, arr: any) => {
             const canNavigate = m.unlocked && m.accessible;
             const name = MODULE_NAMES[m.module] ?? `Module ${m.module}`;
             const isLast = idx === arr.length - 1;

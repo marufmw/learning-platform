@@ -132,6 +132,14 @@ export const apiSlice = createApi({
         { type: "Children", id: arg.id },
       ],
     }),
+    deleteChild: builder.mutation<any, string>({
+      query: (id) => ({ url: `/children/${id}`, method: "DELETE" }),
+      invalidatesTags: [
+        { type: "Children", id: "LIST" },
+        { type: "ChildDashboard", id: "LIST" },
+        { type: "AccessList", id: "LIST" },
+      ],
+    }),
 
     // --- Payment ---
     getPaymentHistory: builder.query<any[], void>({
@@ -155,6 +163,10 @@ export const apiSlice = createApi({
         { type: "ChildDashboard", id: "LIST" },
         { type: "AccessList", id: "LIST" },
       ],
+    }),
+    savePaymentMethod: builder.mutation<any, { paymentMethodId: string }>({
+      query: (body) => ({ url: "/payment/save-payment-method", method: "POST", data: body }),
+      invalidatesTags: ["User"],
     }),
 
     // --- Access ---
