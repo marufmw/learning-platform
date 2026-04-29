@@ -91,7 +91,7 @@ export function Navbar() {
                         )}
                       </button>
                     ))}
-                    <div className="border-t border-gray-200 dark:border-gray-800 px-4 py-3">
+                    <div className="border-t border-gray-200 dark:border-gray-00 px-4 py-3">
                       <Link
                         href="/settings"
                         className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"

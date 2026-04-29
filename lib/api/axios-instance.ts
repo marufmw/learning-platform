@@ -31,10 +31,12 @@ instance.interceptors.request.use(async (config) => {
 
 instance.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      if (typeof window !== "undefined") {
-        (window as any).__clerkToken = null;
+  async (error) => {
+    if (error.response?.status === 401 && typeof window !== "undefined") {
+      const signOut = (window as any).__clerkSignOut;
+      if (signOut) {
+        await signOut({ redirectUrl: "/" });
+      } else {
         window.location.href = "/";
       }
     }

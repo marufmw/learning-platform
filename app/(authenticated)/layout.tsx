@@ -1,4 +1,4 @@
-import { Navbar } from "@/components/Navbar";
+import { Sidebar } from "@/components/Sidebar";
 
 export default function AuthenticatedLayout({
   children,
@@ -6,9 +6,17 @@ export default function AuthenticatedLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-white">
-      <Navbar />
-      <main>{children}</main>
+    <div className="flex min-h-screen" style={{ background: "var(--dc-bg-primary)" }}>
+      <Sidebar />
+      {/* Content area — offset for sidebar on desktop, top bar on mobile */}
+      <main
+        className="flex-1 min-w-0 pt-14 md:pt-0"
+        style={{ marginLeft: "0" }}
+      >
+        <div className="md:ml-(--sidebar-width) min-h-screen">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }

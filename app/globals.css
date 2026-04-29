@@ -1,5 +1,49 @@
 @import "tailwindcss";
 
+:root {
+  --dc-bg-primary: #313338;
+  --dc-bg-secondary: #2b2d31;
+  --dc-bg-tertiary: #1e1f22;
+  --dc-bg-floating: #111214;
+  --dc-bg-modifier-hover: rgba(255,255,255,0.06);
+  --dc-bg-modifier-active: rgba(255,255,255,0.10);
+  --dc-bg-modifier-selected: rgba(255,255,255,0.12);
+  --dc-text-normal: #dbdee1;
+  --dc-text-muted: #80848e;
+  --dc-text-link: #00a8fc;
+  --dc-text-positive: #23a559;
+  --dc-blurple: #5865f2;
+  --dc-blurple-hover: #4752c4;
+  --dc-green: #23a559;
+  --dc-red: #f23f42;
+  --dc-yellow: #f0b132;
+  --dc-border: rgba(255,255,255,0.06);
+  --dc-border-subtle: rgba(255,255,255,0.04);
+  --sidebar-width: 240px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "gg sans", "Noto Sans", Whitney, "Helvetica Neue", Helvetica, Roboto, Arial, sans-serif;
+  background-color: var(--dc-bg-primary);
+  color: var(--dc-text-normal);
+  margin: 0;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.15);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.25);
 }

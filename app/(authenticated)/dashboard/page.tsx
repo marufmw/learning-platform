@@ -10,6 +10,19 @@ import {
 } from "@/lib/api/hooks";
 import { useSelectedChild } from "@/lib/context/ChildContext";
 import { useEffect } from "react";
+import {
+  BookOpen,
+  Trophy,
+  Layers,
+  TrendingUp,
+  Brain,
+  CheckCircle2,
+  Circle,
+  Clock,
+  Lock,
+  ChevronRight,
+  ArrowRight,
+} from "lucide-react";
 
 const MODULE_NAMES: Record<number, string> = {
   1: "Start Busy Brains",
@@ -29,30 +42,26 @@ const BRAIN_ICONS: Record<string, string> = {
 
 function ModuleStatusIcon({ status, accessible }: { status: string; accessible: boolean }) {
   if (status === "completed") {
-    return (
-      <span className="flex-shrink-0 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
-        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-        </svg>
-      </span>
-    );
+    return <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: "var(--dc-green)" }} />;
   }
   if (status === "ongoing") {
-    return (
-      <span className="flex-shrink-0 w-5 h-5 rounded-full border-2 border-amber-400 flex items-center justify-center">
-        <span className="w-2 h-2 rounded-full bg-amber-400" />
-      </span>
-    );
+    return <Clock className="w-4 h-4 flex-shrink-0" style={{ color: "var(--dc-yellow)" }} />;
   }
-  // initialized / locked
+  if (!accessible) {
+    return <Lock className="w-4 h-4 flex-shrink-0" style={{ color: "var(--dc-text-muted)" }} />;
+  }
+  return <Circle className="w-4 h-4 flex-shrink-0" style={{ color: "var(--dc-text-muted)" }} />;
+}
+
+function StatCard({ label, value, color, icon: Icon }: { label: string; value: string; color: string; icon: React.ElementType }) {
   return (
-    <span
-      className={`flex-shrink-0 w-5 h-5 rounded-full border-2 ${
-        accessible
-          ? "border-gray-400 dark:border-gray-500"
-          : "border-gray-600 dark:border-gray-700"
-      }`}
-    />
+    <div className="rounded-xl p-4 border" style={{ background: "var(--dc-bg-secondary)", borderColor: "var(--dc-border)" }}>
+      <div className="flex items-center gap-2 mb-2">
+        <Icon className="w-4 h-4" style={{ color }} />
+        <p className="text-xs font-medium" style={{ color: "var(--dc-text-muted)" }}>{label}</p>
+      </div>
+      <p className="text-2xl font-bold" style={{ color }}>{value}</p>
+    </div>
   );
 }
 
@@ -82,186 +91,172 @@ export default function DashboardPage() {
 
   const completedModules = dashboardData?.progress?.modules.completed ?? 0;
   const totalModules = dashboardData?.progress?.modules.total ?? 6;
-  const progressPct = totalModules > 0 ? Math.round((completedModules / totalModules) * 100) : 0;
 
   if (userLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex items-center justify-center min-h-screen" style={{ background: "var(--dc-bg-primary)" }}>
         <div className="text-center">
-          <div className="w-12 h-12 bg-emerald-500 rounded-full animate-pulse mx-auto mb-4" />
-          <p className="text-gray-400">Loading...</p>
+          <div className="w-10 h-10 rounded-full animate-pulse mx-auto mb-3" style={{ background: "var(--dc-blurple)" }} />
+          <p className="text-sm" style={{ color: "var(--dc-text-muted)" }}>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+
+
+  if (!selectedChild) {
+    return (
+      <div className="flex items-center justify-center min-h-screen px-4" style={{ color: "var(--dc-text-normal)" }}>
+        <div className="text-center max-w-sm">
+          <BookOpen className="w-12 h-12 mx-auto mb-4" style={{ color: "var(--dc-text-muted)" }} />
+          <h2 className="text-xl font-bold text-white mb-2">No Child Selected</h2>
+          <p className="text-sm mb-5" style={{ color: "var(--dc-text-muted)" }}>
+            Select a child in settings to start learning
+          </p>
+          <Link href="/settings"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white"
+            style={{ background: "var(--dc-blurple)" }}>
+            Go to Settings <ChevronRight className="w-4 h-4" />
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-950 min-h-screen text-white">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <div className="min-h-screen px-4 sm:px-6 py-6 max-w-3xl mx-auto space-y-5" style={{ color: "var(--dc-text-normal)" }}>
 
-        {/* Welcome */}
-        {selectedChild && (
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm mb-0.5" style={{ color: "var(--dc-text-muted)" }}>Welcome back!</p>
+          <h1 className="text-2xl font-bold text-white">{selectedChild.name}</h1>
+        </div>
+        <Link
+          href="/modules"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-opacity hover:opacity-80"
+          style={{ background: "var(--dc-blurple)" }}
+        >
+          Continue <ArrowRight className="w-4 h-4" />
+        </Link>
+      </div>
+
+
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <StatCard label="Modules" value={`${dashboardData?.progress?.modules.completed ?? 0}/${dashboardData?.progress?.modules.total ?? 0}`} color="var(--dc-green)" icon={Layers} />
+        <StatCard label="Quests" value={`${dashboardData?.progress?.quests.completed ?? 0}/${dashboardData?.progress?.quests.total ?? 0}`} color="#c084fc" icon={Trophy} />
+        <StatCard label="Screens" value={`${dashboardData?.progress?.screens.completed ?? 0}/${dashboardData?.progress?.screens.total ?? 0}`} color="var(--dc-blurple)" icon={BookOpen} />
+        <StatCard label="Overall" value={`${dashboardData?.progress?.progressPercentage ?? 0}%`} color="var(--dc-yellow)" icon={TrendingUp} />
+      </div>
+
+      {/* Brain type */}
+      {dashboardData?.brain_data.status === "completed" ? (
+        <div className="rounded-xl p-5 flex items-center gap-4"
+          style={{ background: "linear-gradient(135deg, #4752c4 0%, #5865f2 100%)" }}>
+          <span className="text-4xl">{BRAIN_ICONS[dashboardData.brain_data.type] ?? "🧠"}</span>
           <div>
-            <p className="text-gray-400 text-sm mb-1">Welcome back! Let&apos;s continue learning</p>
-            <h1 className="text-3xl font-bold flex items-center gap-3">
-              <span className="text-4xl">{selectedChild.gender === "male" ? "👦" : "👧"}</span>
-              {selectedChild.name}
-            </h1>
+            <p className="text-xs font-semibold uppercase tracking-widest mb-0.5 text-indigo-200">Your Brain Type</p>
+            <p className="text-lg font-bold text-white">{dashboardData.brain_data.type}</p>
+            <div className="flex gap-3 mt-1 text-xs text-indigo-200">
+              {(["A", "B", "C", "D"] as const).map((l) => (
+                <span key={l}>{l}: {dashboardData.brain_data.counts[l]}</span>
+              ))}
+            </div>
           </div>
-        )}
-
-        {/* Stats row */}
-        {selectedChild && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { label: "Modules", value: `${dashboardData?.progress?.modules.completed ?? 0}/${dashboardData?.progress?.modules.total ?? 0}`, color: "text-emerald-400" },
-              { label: "Quests", value: `${dashboardData?.progress?.quests.completed ?? 0}/${dashboardData?.progress?.quests.total ?? 0}`, color: "text-purple-400" },
-              { label: "Screens", value: `${dashboardData?.progress?.screens.completed ?? 0}/${dashboardData?.progress?.screens.total ?? 0}`, color: "text-blue-400" },
-              { label: "Overall", value: `${dashboardData?.progress?.progressPercentage ?? 0}%`, color: "text-amber-400" },
-            ].map(({ label, value, color }) => (
-              <div key={label} className="bg-gray-900 rounded-xl p-4 border border-gray-800">
-                <p className="text-xs text-gray-500 mb-1">{label}</p>
-                <p className={`text-2xl font-bold ${color}`}>{value}</p>
-              </div>
-            ))}
+        </div>
+      ) : (
+        <div className="rounded-xl p-4 flex items-center gap-3 border"
+          style={{ background: "var(--dc-bg-secondary)", borderColor: "var(--dc-border)" }}>
+          <Brain className="w-8 h-8 flex-shrink-0" style={{ color: "var(--dc-text-muted)" }} />
+          <div>
+            <p className="font-semibold text-white text-sm">Brain Type Unknown</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--dc-text-muted)" }}>
+              Complete Module 1 → Quest 5 → Screen 2 to reveal your brain type
+            </p>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Brain Type */}
-        {selectedChild && (
-          dashboardData?.brain_data.status === "completed" ? (
-            <div className="bg-linear-to-br from-purple-600 to-indigo-700 rounded-xl p-5 flex items-center gap-5">
-              <span className="text-5xl shrink-0">
-                {BRAIN_ICONS[dashboardData.brain_data.type] ?? "🧠"}
-              </span>
-              <div>
-                <p className="text-purple-200 text-xs font-medium uppercase tracking-widest mb-1">Brain Type</p>
-                <p className="text-xl font-bold">{dashboardData.brain_data.type}</p>
-                <div className="flex gap-3 mt-1 text-sm text-purple-200">
-                  {(["A", "B", "C", "D"] as const).map((l) => (
-                    <span key={l}>{l}: {dashboardData.brain_data.counts[l]}</span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-gray-900 rounded-xl p-5 border border-gray-800 flex items-center gap-4">
-              <span className="text-3xl">🧠</span>
-              <div>
-                <p className="font-medium text-gray-200 text-sm">Brain Type Unknown</p>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  Complete Module 1 → Quest 5 → Screen 2 to reveal the brain type.
-                </p>
-              </div>
-            </div>
-          )
-        )}
-
-        {/* Module Progress card */}
-        {selectedChild && (
-          <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-800">
-              <div className="flex items-center gap-2">
-                <span className="text-emerald-400 text-lg">📖</span>
-                <h2 className="font-semibold text-base">Module Progress</h2>
-              </div>
-              <span className="text-xs font-semibold bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full">
-                {completedModules}/{totalModules}
-              </span>
-            </div>
-
-            {/* Progress bar */}
-            <div className="px-5 pt-4 pb-2">
-              <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-emerald-500 rounded-full transition-all duration-500"
-                  style={{ width: `${dashboardData?.progress?.progressPercentage}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Module list */}
-            <ul className="divide-y divide-gray-800/60 px-2 pb-2">
-              {(dashboardData?.module_progress ?? Array.from({ length: 6 }, (_, i) => ({
-                module: i + 1,
-                status: "initialized" as const,
-                accessible: false,
-                unlocked: false,
-                unlockedAt: null,
-              }))).map((m) => {
-                const canNavigate = m.unlocked && m.accessible;
-                const isLocked = !m.unlocked;
-                const name = MODULE_NAMES[m.module] ?? `Module ${m.module}`;
-
-                return (
-                  <li key={m.module}>
-                    <Link
-                      href={canNavigate ? `/modules/${m.module}` : "#"}
-                      className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${
-                        canNavigate
-                          ? "hover:bg-gray-800 cursor-pointer"
-                          : "cursor-default"
-                      }`}
-                    >
-                      <ModuleStatusIcon status={m.status} accessible={m.accessible} />
-                      <span
-                        className={`text-sm font-medium ${
-                          m.status === "completed"
-                            ? "text-white"
-                            : m.status === "ongoing"
-                            ? "text-amber-300"
-                            : isLocked
-                            ? "text-gray-600"
-                            : "text-gray-400"
-                        }`}
-                      >
-                        {name}
-                      </span>
-                      {isLocked && m.unlockedAt && (
-                        <span className="ml-auto text-xs text-gray-600">
-                          {new Date(m.unlockedAt).toLocaleDateString()}
-                        </span>
-                      )}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+      {/* Module progress */}
+      <div className="rounded-xl border overflow-hidden" style={{ background: "var(--dc-bg-secondary)", borderColor: "var(--dc-border)" }}>
+        <div className="flex items-center justify-between px-5 py-3.5 border-b" style={{ borderColor: "var(--dc-border)" }}>
+          <div className="flex items-center gap-2">
+            <Layers className="w-4 h-4" style={{ color: "var(--dc-green)" }} />
+            <h2 className="font-semibold text-white text-sm">Module Progress</h2>
           </div>
-        )}
-
-        {/* Quick actions */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Link
-            href="/modules"
-            className="group bg-linear-to-br from-emerald-600 to-teal-700 rounded-xl p-6 hover:shadow-xl transition hover:scale-[1.02]"
-          >
-            <div className="text-3xl mb-2">📚</div>
-            <h2 className="text-lg font-bold mb-1">Continue Learning</h2>
-            <p className="text-emerald-100 text-sm">Access all modules and quests</p>
-          </Link>
-          <Link
-            href="/settings"
-            className="group bg-linear-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-xl p-6 hover:shadow-xl transition hover:scale-[1.02]"
-          >
-            <div className="text-3xl mb-2">⚙️</div>
-            <h2 className="text-lg font-bold mb-1">Settings</h2>
-            <p className="text-gray-400 text-sm">Manage children and account</p>
-          </Link>
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-full"
+            style={{ background: "rgba(35,165,89,0.15)", color: "var(--dc-green)" }}>
+            {completedModules}/{totalModules}
+          </span>
         </div>
 
-        {!selectedChild && children && children.length > 0 && (
-          <div className="bg-yellow-950/40 border border-yellow-900/60 rounded-xl p-6 text-center">
-            <p className="text-yellow-300 text-sm">Please select a child to get started</p>
-            <Link
-              href="/settings"
-              className="inline-block mt-3 px-5 py-2 bg-yellow-600 text-white rounded-lg text-sm hover:bg-yellow-500 transition"
-            >
-              Go to Settings
-            </Link>
+        {/* Progress bar */}
+        <div className="px-5 py-3 border-b" style={{ borderColor: "var(--dc-border)" }}>
+          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "var(--dc-bg-tertiary)" }}>
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{
+                width: `${dashboardData?.progress?.progressPercentage ?? 0}%`,
+                background: "var(--dc-green)",
+              }}
+            />
           </div>
-        )}
+        </div>
+
+        <ul>
+          {(dashboardData?.module_progress ?? Array.from({ length: 6 }, (_, i) => ({
+            module: i + 1,
+            status: "initialized" as const,
+            accessible: false,
+            unlocked: false,
+            unlockedAt: null,
+            isCompleted: false,
+            completedAt: null,
+          }))).map((m, idx, arr) => {
+            const canNavigate = m.unlocked && m.accessible;
+            const name = MODULE_NAMES[m.module] ?? `Module ${m.module}`;
+            const isLast = idx === arr.length - 1;
+
+            return (
+              <li key={m.module} className={!isLast ? "border-b" : ""} style={{ borderColor: "var(--dc-border-subtle)" }}>
+                <Link
+                  href={canNavigate ? `/modules/${m.module}` : "#"}
+                  className="flex items-center gap-3 px-5 py-3 transition-colors"
+                  style={{
+                    cursor: canNavigate ? "pointer" : "default",
+                  }}
+                  onMouseEnter={e => {
+                    if (canNavigate) (e.currentTarget as HTMLElement).style.background = "var(--dc-bg-modifier-hover)";
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLElement).style.background = "transparent";
+                  }}
+                >
+                  <ModuleStatusIcon status={m.status} accessible={m.accessible} />
+                  <span
+                    className="text-sm font-medium flex-1"
+                    style={{
+                      color: m.status === "completed" ? "white"
+                        : m.status === "ongoing" ? "var(--dc-yellow)"
+                          : !m.unlocked ? "var(--dc-text-muted)"
+                            : "var(--dc-text-normal)",
+                    }}
+                  >
+                    {name}
+                  </span>
+                  {!m.unlocked && m.unlockedAt && (
+                    <span className="text-xs" style={{ color: "var(--dc-text-muted)" }}>
+                      {new Date(m.unlockedAt).toLocaleDateString()}
+                    </span>
+                  )}
+                  {canNavigate && <ChevronRight className="w-3.5 h-3.5" style={{ color: "var(--dc-text-muted)" }} />}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </div>
   );

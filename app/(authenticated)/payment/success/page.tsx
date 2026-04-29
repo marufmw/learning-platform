@@ -5,7 +5,15 @@ import { PaymentSuccessContent } from "./content";
 
 export default function PaymentSuccessPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="text-center"><div className="w-12 h-12 bg-blue-500 rounded-full animate-pulse mx-auto mb-4"></div><p>Loading...</p></div></div>}>
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="w-10 h-10 rounded-full animate-pulse mx-auto mb-3"
+            style={{ background: "var(--dc-blurple)" }} />
+          <p className="text-sm" style={{ color: "var(--dc-text-muted)" }}>Loading...</p>
+        </div>
+      </div>
+    }>
       <PaymentSuccessContent />
     </Suspense>
   );

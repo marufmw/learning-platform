@@ -1,17 +1,21 @@
 "use client";
 
 import { useEffect } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useClerk } from "@clerk/nextjs";
 
 export function ReduxProvider({ children }: { children: React.ReactNode }) {
   const { getToken, isSignedIn } = useAuth();
+  const { signOut } = useClerk();
 
   useEffect(() => {
-    // Store getToken function in window so axios interceptor can use it
     if (getToken) {
       (window as any).__getClerkToken = getToken;
     }
   }, [getToken]);
+
+  useEffect(() => {
+    (window as any).__clerkSignOut = signOut;
+  }, [signOut]);
 
   useEffect(() => {
     if (!isSignedIn || !getToken) return;

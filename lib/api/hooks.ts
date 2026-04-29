@@ -312,6 +312,18 @@ export function useGetChildDashboardQuery(
   );
 }
 
+export function useRequestDeletionMutation(): UseMutationResult<any, void> {
+  return useMutation(() =>
+    instance.post("/users/me/request-deletion").then((res) => res.data)
+  );
+}
+
+export function useDeleteAccountMutation(): UseMutationResult<any, { otp: string }> {
+  return useMutation(({ otp }) =>
+    instance.delete("/users/me", { data: { otp } }).then((res) => res.data)
+  );
+}
+
 export function useGetScreenQuery(
   params:
     | { childId: string; moduleNo: number; questNo: number; screenNo: number }

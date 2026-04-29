@@ -1,34 +1,31 @@
 import Link from "next/link";
 
-function Logo() {
-  return (
-    <Link href="/" className="absolute left-4 top-4 sm:left-8 sm:top-8 z-10">
-      <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-        Busy Brains
-      </div>
-    </Link>
-  );
-}
-
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-linear-to-br from-gray-950 via-gray-900 to-gray-950 min-h-screen flex items-center justify-center relative overflow-hidden">
-      {/* Animated background elements */}
+    <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden bg-[#313338]">
+
+      {/* Background glow (brand-colored) */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ animationDelay: "2s" }}></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#5865F2] rounded-full blur-3xl opacity-20 animate-pulse"></div>
+        <div
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#4752c4] rounded-full blur-3xl opacity-20 animate-pulse"
+          style={{ animationDelay: "2s" }}
+        ></div>
       </div>
 
-      <Logo />
-
-      {/* Content wrapper */}
-      <div className="relative z-10 w-full max-w-md px-4">
-        {children}
+      {/* Optional top branding */}
+      <div className="absolute top-6 left-0 right-0 z-10 w-screen">
+        <Link href="/" className="text-xl text-left pl-12 font-bold text-[#dbdee1] hover:opacity-80 transition">
+          Busy Brains
+        </Link>
       </div>
+
+      {/* Auth Card Wrapper */}
+      {children}
     </div>
   );
 }
