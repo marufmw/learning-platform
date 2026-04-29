@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 import { useAuth, useClerk } from "@clerk/nextjs";
+import { Provider } from "react-redux";
+import { store } from "@/lib/store";
 
 export function ReduxProvider({ children }: { children: React.ReactNode }) {
   const { getToken, isSignedIn } = useAuth();
@@ -39,5 +41,5 @@ export function ReduxProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(interval);
   }, [getToken, isSignedIn]);
 
-  return <>{children}</>;
+  return <Provider store={store}>{children}</Provider>;
 }
