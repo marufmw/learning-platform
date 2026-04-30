@@ -67,7 +67,7 @@ export default function ChildrenPage() {
       setShowForm(false);
       await refetch();
     } catch (err: any) {
-      setError(err.message || "Failed to save child");
+      setError(err?.data?.message || err?.message || "Failed to save child");
     }
   };
 

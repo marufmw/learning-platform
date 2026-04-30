@@ -221,7 +221,8 @@ export default function SettingsPage() {
       setShowForm(false);
       await refetch();
     } catch (err: any) {
-      setChildError(err.response?.data?.message || err.message || "Failed to save child");
+      setChildError(err?.data?.message || err?.message || "Failed to save child");
+
     }
   };
 
@@ -279,7 +280,7 @@ export default function SettingsPage() {
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordError("");
-    if (!user?.hasPassword && !passwordFormData.currentPassword) {} // skip if setting for first time
+    if (!user?.hasPassword && !passwordFormData.currentPassword) { } // skip if setting for first time
     if (user?.hasPassword && !passwordFormData.currentPassword) return setPasswordError("Current password is required");
     if (!passwordFormData.newPassword) return setPasswordError("New password is required");
     if (passwordFormData.newPassword.length < 8) return setPasswordError("New password must be at least 8 characters");

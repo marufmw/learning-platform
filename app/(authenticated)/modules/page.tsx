@@ -61,7 +61,7 @@ function StatusBadge({ status, accessible, unlocked }: { status: string; accessi
     return (
       <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full"
         style={{ background: "rgba(255,255,255,0.06)", color: "var(--dc-text-muted)" }}>
-        <Lock className="w-3 h-3" /> Complete prev.
+        <Lock className="w-3 h-3" /> Complete previous
       </span>
     );
   }
