@@ -7,7 +7,6 @@ import {
   useGetPaymentHistoryQuery,
   useGetMeQuery,
   useStartPlanMutation,
-  useSavePaymentMethodMutation,
 } from "@/lib/api/hooks";
 import {
   CreditCard,
@@ -41,94 +40,6 @@ const PLANS = [
   },
 ];
 
-// Stripe Elements form component
-function PaymentMethodForm({ onSuccess, userHasPaymentMethod }: { onSuccess: () => void; userHasPaymentMethod: boolean }) {
-  const stripe = useStripe();
-  const elements = useElements();
-  const { mutate: savePaymentMethod, isLoading, error } = useSavePaymentMethodMutation();
-  const [cardError, setCardError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!stripe || !elements) return;
-
-    setIsSubmitting(true);
-    setCardError("");
-
-    try {
-      // Create PaymentMethod from card element
-      const { error: pmError, paymentMethod } = await stripe.createPaymentMethod({
-        type: "card",
-        card: elements.getElement(CardElement)!,
-      });
-
-      if (pmError) {
-        setCardError(pmError.message || "Failed to create payment method");
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!paymentMethod) {
-        setCardError("No payment method returned");
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Send to backend
-      await savePaymentMethod({ paymentMethodId: paymentMethod.id });
-      setCardError("");
-      setIsSubmitting(false);
-      onSuccess();
-    } catch (err: any) {
-      setCardError(err?.message || "Failed to save payment method");
-      setIsSubmitting(false);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="p-4 rounded-lg border"
-        style={{ background: "var(--dc-bg-primary)", borderColor: "var(--dc-border)" }}>
-        <CardElement
-          options={{
-            style: {
-              base: {
-                fontSize: "14px",
-                color: "var(--dc-text-normal)",
-                "::placeholder": { color: "var(--dc-text-muted)" },
-              },
-              invalid: { color: "var(--dc-red)" },
-            },
-            hidePostalCode: true,
-          }}
-        />
-      </div>
-
-      {(cardError || error) && (
-        <div className="flex items-start gap-2.5 p-3 rounded-lg border"
-          style={{ background: "rgba(242,63,66,0.08)", borderColor: "rgba(242,63,66,0.25)" }}>
-          <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" style={{ color: "var(--dc-red)" }} />
-          <p className="text-sm" style={{ color: "var(--dc-red)" }}>{cardError || error}</p>
-        </div>
-      )}
-
-      <button
-        type="submit"
-        disabled={!stripe || isSubmitting}
-        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold text-white transition-opacity disabled:opacity-40"
-        style={{ background: "var(--dc-blurple)" }}
-      >
-        {isSubmitting ? (
-          <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving...</>
-        ) : (
-          <><CreditCard className="w-4 h-4" /> {userHasPaymentMethod ? "Update Payment Method" : "Add Payment Method"}</>
-        )}
-      </button>
-    </form>
-  );
-}
-
 function StatusChip({ status }: { status: string }) {
   const styles: Record<string, { bg: string; color: string; icon: React.ElementType }> = {
     succeeded: { bg: "rgba(35,165,89,0.15)", color: "var(--dc-green)", icon: CheckCircle2 },
@@ -153,8 +64,7 @@ function PaymentPageContent() {
   const { mutate: startPlan, isLoading } = useStartPlanMutation();
   const [error, setError] = useState("");
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [showPaymentForm, setShowPaymentForm] = useState(false);
-  const [paymentMethodSaved, setPaymentMethodSaved] = useState(false);
+
 
   const handleStartPlan = async (planName: string) => {
     try {
@@ -296,81 +206,6 @@ function PaymentPageContent() {
             );
           })}
         </div>
-      </div>
-
-      {/* Save payment method */}
-      <div className="mb-6 rounded-xl border overflow-hidden"
-        style={{ background: "var(--dc-bg-secondary)", borderColor: "var(--dc-border)" }}>
-        <div className="flex items-center justify-between px-5 py-3.5 border-b" style={{ borderColor: "var(--dc-border)" }}>
-          <div className="flex items-center gap-2.5">
-            <CreditCard className="w-4 h-4" style={{ color: "var(--dc-blurple)" }} />
-            <div>
-              <h2 className="text-sm font-semibold text-white">
-                {user?.paymentMethodId ? "Saved Payment Method" : "Add a Payment Method"}
-              </h2>
-              <p className="text-xs mt-0.5" style={{ color: "var(--dc-text-muted)" }}>
-                {user?.paymentMethodId
-                  ? "Your card will be used for future purchases"
-                  : "Save a card to streamline checkout"}
-              </p>
-            </div>
-          </div>
-          {!showPaymentForm && (
-            <button
-              onClick={() => setShowPaymentForm(true)}
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
-              style={{ background: "var(--dc-bg-modifier-hover)", color: "var(--dc-text-muted)" }}
-              onMouseEnter={e => (e.currentTarget.style.color = "var(--dc-text-normal)")}
-              onMouseLeave={e => (e.currentTarget.style.color = "var(--dc-text-muted)")}
-            >
-              {user?.paymentMethodId ? "Update" : "Add"}
-            </button>
-          )}
-        </div>
-
-        {showPaymentForm && (
-          <div className="p-5">
-            <PaymentMethodForm
-              userHasPaymentMethod={!!user?.paymentMethodId}
-              onSuccess={() => {
-                setShowPaymentForm(false);
-                setPaymentMethodSaved(true);
-                refetchUser();
-                setTimeout(() => setPaymentMethodSaved(false), 3000);
-              }}
-            />
-          </div>
-        )}
-
-        {paymentMethodSaved && (
-          <div className="flex items-start gap-2.5 p-3 mx-5 mb-4 rounded-lg border"
-            style={{ background: "rgba(35,165,89,0.08)", borderColor: "rgba(35,165,89,0.25)" }}>
-            <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" style={{ color: "var(--dc-green)" }} />
-            <p className="text-sm" style={{ color: "var(--dc-green)" }}>Payment method saved successfully!</p>
-          </div>
-        )}
-
-        {user?.paymentMethodId && !showPaymentForm && (
-          <div className="p-4" style={{ borderTop: "1px solid var(--dc-border)" }}>
-            <div className="flex items-center gap-2 mb-2">
-              <CheckCircle2 className="w-5 h-5 shrink-0" style={{ color: "var(--dc-green)" }} />
-              <p className="text-sm text-white font-semibold">Payment method on file</p>
-            </div>
-            {user?.cardBrand && (
-              <div className="flex items-center gap-2 ml-7 mt-2">
-                <CreditCard className="w-4 h-4" style={{ color: "var(--dc-text-muted)" }} />
-                <p className="text-sm" style={{ color: "var(--dc-text-normal)" }}>
-                  {user.cardBrand.charAt(0).toUpperCase() + user.cardBrand.slice(1)}{user.cardLast4 && ` ending in ${user.cardLast4}`}
-                </p>
-              </div>
-            )}
-            {user?.cardExpMonth && user?.cardExpYear && (
-              <p className="text-xs ml-7 mt-1" style={{ color: "var(--dc-text-muted)" }}>
-                Expires {String(user.cardExpMonth).padStart(2, "0")}/{user.cardExpYear}
-              </p>
-            )}
-          </div>
-        )}
       </div>
 
       {/* Payment history */}

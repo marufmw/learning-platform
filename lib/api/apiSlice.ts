@@ -164,11 +164,6 @@ export const apiSlice = createApi({
         { type: "AccessList", id: "LIST" },
       ],
     }),
-    savePaymentMethod: builder.mutation<any, { paymentMethodId: string }>({
-      query: (body) => ({ url: "/payment/save-payment-method", method: "POST", data: body }),
-      invalidatesTags: ["User"],
-    }),
-
     // --- Access ---
     getAccessStatus: builder.query<
       any,

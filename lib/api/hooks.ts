@@ -146,11 +146,6 @@ export function useStartPlanMutation() {
   return wrapMutation<any, { planName: string }>(trigger, result);
 }
 
-export function useSavePaymentMethodMutation() {
-  const [trigger, result] = apiSlice.useSavePaymentMethodMutation();
-  return wrapMutation<any, { paymentMethodId: string }>(trigger, result);
-}
-
 // ---------------------------------------------------------------------------
 // Access
 // ---------------------------------------------------------------------------
